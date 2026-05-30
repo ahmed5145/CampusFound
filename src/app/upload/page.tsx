@@ -124,14 +124,6 @@ export default function Page() {
     setIsBuildingPickerOpen(false)
   }
 
-  function handleValidateForm() {
-    setValidation((current) => ({
-      ...current,
-      submitAttempted: true,
-      fieldErrors: validateDraft(draft)
-    }))
-  }
-
   function handleSubmit() {
     const fieldErrors = validateDraft(draft)
     const hasErrors = Object.values(fieldErrors).some((errors) => errors.length > 0)
