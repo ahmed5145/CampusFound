@@ -20,6 +20,19 @@ CREATE TABLE listings (
   location_details TEXT,
   description TEXT,
   status TEXT NOT NULL DEFAULT 'active',
+  CONSTRAINT chk_location_type CHECK (
+    location_type IN (
+      'lost_and_found',
+      'campus_safety',
+      'other'
+    )
+  ),
+  CONSTRAINT chk_status CHECK (
+    status IN (
+      'active',
+      'removed'
+    )
+  ),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '60 days'),
   CONSTRAINT chk_expires_after_created CHECK (expires_at > created_at)
