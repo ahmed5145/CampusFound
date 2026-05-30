@@ -1,10 +1,11 @@
 import { getListingById } from '../../../../lib/db'
 import { validateListingIdParam } from '../../../../lib/validators'
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = validateListingIdParam(params.id)
-    const data = await getListingById(id)
+    const { id } = await params
+    const validatedId = validateListingIdParam(id)
+    const data = await getListingById(validatedId)
 
     if (!data) {
       return Response.json({ error: 'Not found' }, { status: 404 })
