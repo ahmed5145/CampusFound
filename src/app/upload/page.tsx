@@ -6,7 +6,7 @@ import ImageUpload from '../../components/ui/ImageUpload'
 import UploadForm from '../../components/forms/UploadForm'
 
 export interface UploadDraft {
-  imageLabel: string
+  selectedImage: File | null
   building: string
   locationType: string
   locationDetails: string
@@ -14,7 +14,7 @@ export interface UploadDraft {
 }
 
 const initialDraft: UploadDraft = {
-  imageLabel: 'No image selected yet',
+  selectedImage: null,
   building: '',
   locationType: '',
   locationDetails: '',
@@ -31,12 +31,8 @@ export default function Page() {
     }))
   }
 
-  function setPlaceholderImage() {
-    updateDraft({ imageLabel: 'Image placeholder selected' })
-  }
-
-  function clearPlaceholderImage() {
-    updateDraft({ imageLabel: 'No image selected yet' })
+  function handleImageChange(file: File | null) {
+    updateDraft({ selectedImage: file })
   }
 
   return (
@@ -50,9 +46,8 @@ export default function Page() {
       </header>
 
       <ImageUpload
-        imageLabel={draft.imageLabel}
-        onSelectPlaceholderImage={setPlaceholderImage}
-        onClearPlaceholderImage={clearPlaceholderImage}
+        file={draft.selectedImage}
+        onFileChange={handleImageChange}
       />
 
       <UploadForm draft={draft} onDraftChange={updateDraft} />
