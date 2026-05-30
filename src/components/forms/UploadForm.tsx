@@ -1,4 +1,67 @@
-// Upload form placeholder
-export default function UploadForm() {
-  return null
+'use client'
+
+import type { UploadDraft } from '../../app/upload/page'
+
+interface UploadFormProps {
+  draft: UploadDraft
+  onDraftChange: (patch: Partial<UploadDraft>) => void
+}
+
+export default function UploadForm({ draft, onDraftChange }: UploadFormProps) {
+  return (
+    <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold text-gray-900">Listing details</h2>
+        <p className="text-sm text-gray-600">
+          Placeholder fields only. Validation, building selection, and submission will be added later.
+        </p>
+      </div>
+
+      <div className="mt-5 space-y-4">
+        <label className="block space-y-2">
+          <span className="text-sm font-medium text-gray-800">Building</span>
+          <input
+            type="text"
+            value={draft.building}
+            onChange={(event) => onDraftChange({ building: event.target.value })}
+            placeholder="Building placeholder"
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+          />
+        </label>
+
+        <label className="block space-y-2">
+          <span className="text-sm font-medium text-gray-800">Location Type</span>
+          <input
+            type="text"
+            value={draft.locationType}
+            onChange={(event) => onDraftChange({ locationType: event.target.value })}
+            placeholder="Location type placeholder"
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+          />
+        </label>
+
+        <label className="block space-y-2">
+          <span className="text-sm font-medium text-gray-800">Location Details</span>
+          <textarea
+            value={draft.locationDetails}
+            onChange={(event) => onDraftChange({ locationDetails: event.target.value })}
+            placeholder="Where was the item found?"
+            rows={4}
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+          />
+        </label>
+
+        <label className="block space-y-2">
+          <span className="text-sm font-medium text-gray-800">Description</span>
+          <textarea
+            value={draft.description}
+            onChange={(event) => onDraftChange({ description: event.target.value })}
+            placeholder="Add a short description"
+            rows={5}
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+          />
+        </label>
+      </div>
+    </section>
+  )
 }
