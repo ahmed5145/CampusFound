@@ -39,7 +39,7 @@ export default function UploadForm({ draft, onDraftChange }: UploadFormProps) {
           <span className="text-sm font-medium text-gray-800">Location Type</span>
           <select
             value={draft.locationType}
-            onChange={(event) => onDraftChange({ locationType: event.target.value })}
+            onChange={(event) => onDraftChange({ locationType: event.target.value as UploadDraft['locationType'] })}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none"
           >
             <option value="">Select location type</option>
