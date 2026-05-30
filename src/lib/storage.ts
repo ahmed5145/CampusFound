@@ -13,7 +13,7 @@ function getBucket(): string {
 }
 
 export function buildListingImagePath(listingId: string): string {
-  return `listings/${listingId.trim()}/image.jpg`
+  return `${listingId.trim()}/image.jpg`
 }
 
 type UploadResult = {
