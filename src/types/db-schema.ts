@@ -1,4 +1,5 @@
 export type LocationType = 'lost_and_found' | 'campus_safety' | 'other'
+export type ListingStatus = 'active' | 'removed'
 
 export interface Building {
   id: string
@@ -14,7 +15,7 @@ export interface Listing {
   location_type: LocationType
   location_details?: string | null
   description?: string | null
-  status: string
+  status: ListingStatus
   created_at: string
   expires_at: string
 }

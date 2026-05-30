@@ -1,6 +1,4 @@
-import type { LocationType } from './db-schema'
-
-export type ModerationStatus = 'active' | 'removed'
+import type { ListingStatus, LocationType } from './db-schema'
 
 export interface Item {
   id: string
@@ -12,7 +10,7 @@ export interface Item {
   locationDetails?: string | null
   createdAt: string
   expiresAt: string
-  status: ModerationStatus
+  status: ListingStatus
 }
 
 export interface Building {
