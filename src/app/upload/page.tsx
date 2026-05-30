@@ -24,6 +24,8 @@ export default function Page() {
   const [isBuildingPickerOpen, setIsBuildingPickerOpen] = useState(false)
   const [isBuildingsLoading, setIsBuildingsLoading] = useState(true)
   const [buildingsError, setBuildingsError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     setValidation((current) => ({
@@ -138,15 +140,84 @@ export default function Page() {
       return
     }
 
-    const payload = {
-      image: draft.selectedImage,
-      building_id: draft.selectedBuilding?.id ?? '',
-      location_type: draft.locationType,
-      location_details: draft.locationDetails || null,
-      description: draft.description || null
+    if (!draft.selectedImage || !draft.selectedBuilding || !draft.locationType) {
+      return
     }
 
-    console.log(payload)
+    const formData = new FormData()
+    formData.append('image', draft.selectedImage)
+    formData.append('building_id', draft.selectedBuilding.id)
+    formData.append('location_type', draft.locationType)
+
+    if (draft.locationDetails.trim().length > 0) {
+      formData.append('location_details', draft.locationDetails)
+    }
+
+    if (draft.description.trim().length > 0) {
+      formData.append('description', draft.description)
+    }
+
+    setSubmitError(null)
+    setIsSubmitting(true)
+
+    void (async () => {
+      try {
+        const response = await fetch('/api/items', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (response.status === 201) {
+          const data = (await response.json()) as unknown
+          console.log(data)
+          return
+        }
+
+        if (response.status === 422) {
+          const errorResponse = (await response.json()) as {
+            error?: string
+            fieldErrors?: Record<string, string[]>
+          }
+
+          setValidation((current) => ({
+            ...current,
+            submitAttempted: true,
+            fieldErrors: mergeFieldErrors(current.fieldErrors, mapBackendFieldErrors(errorResponse.fieldErrors ?? {}))
+          }))
+          return
+        }
+
+        setSubmitError('Something went wrong. Please try again.')
+      } catch {
+        setSubmitError('Something went wrong. Please try again.')
+      } finally {
+        setIsSubmitting(false)
+      }
+    })()
+  }
+
+  function mapBackendFieldErrors(fieldErrors: Record<string, string[]>) {
+    return {
+      selectedImage: fieldErrors.image ?? [],
+      selectedBuilding: fieldErrors.building_id ?? [],
+      locationType: fieldErrors.location_type ?? [],
+      locationDetails: fieldErrors.location_details ?? [],
+      description: fieldErrors.description ?? []
+    }
+  }
+
+  function mergeFieldErrors(currentErrors: ValidationState['fieldErrors'], nextErrors: ValidationState['fieldErrors']) {
+    return {
+      selectedImage: mergeErrorLists(currentErrors.selectedImage, nextErrors.selectedImage),
+      selectedBuilding: mergeErrorLists(currentErrors.selectedBuilding, nextErrors.selectedBuilding),
+      locationType: mergeErrorLists(currentErrors.locationType, nextErrors.locationType),
+      locationDetails: mergeErrorLists(currentErrors.locationDetails, nextErrors.locationDetails),
+      description: mergeErrorLists(currentErrors.description, nextErrors.description)
+    }
+  }
+
+  function mergeErrorLists(currentErrors: string[], nextErrors: string[]) {
+    return Array.from(new Set([...currentErrors, ...nextErrors]))
   }
 
   const showImageErrors = validation.touched.selectedImage || validation.submitAttempted
@@ -196,12 +267,15 @@ export default function Page() {
         <p className="text-sm text-red-600">{buildingsError}</p>
       ) : null}
 
+      {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
+
       <button
         type="button"
         onClick={handleSubmit}
+        disabled={isSubmitting}
         className="rounded-xl border border-gray-300 px-4 py-3 text-sm font-medium text-gray-900"
       >
-        Submit Listing
+        {isSubmitting ? 'Submitting...' : 'Submit Listing'}
       </button>
     </main>
   )

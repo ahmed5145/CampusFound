@@ -4,6 +4,19 @@ import { createListing, getListings } from '../../../lib/db'
 import { deleteListingImage, uploadListingImage } from '../../../lib/storage'
 import { validateListingCreateFormData, validateListingQuery } from '../../../lib/validators'
 
+type ValidationErrorWithFields = Error & {
+  fieldErrors?: Record<string, string[]>
+}
+
+function isValidationError(error: unknown): error is ValidationErrorWithFields {
+  return (
+    error instanceof Error &&
+    error.name === 'ValidationError' &&
+    typeof (error as ValidationErrorWithFields).fieldErrors === 'object' &&
+    (error as ValidationErrorWithFields).fieldErrors !== null
+  )
+}
+
 export async function GET(request: Request) {
   try {
     const query = validateListingQuery(new URL(request.url).searchParams)
@@ -15,7 +28,17 @@ export async function GET(request: Request) {
     })
 
     return Response.json(data, { status: 200 })
-  } catch {
+  } catch (error) {
+    if (isValidationError(error)) {
+      return Response.json(
+        {
+          error: 'Validation failed',
+          fieldErrors: error.fieldErrors ?? {}
+        },
+        { status: 422 }
+      )
+    }
+
     return Response.json({ error: 'Request failed' }, { status: 500 })
   }
 }
@@ -37,7 +60,17 @@ export async function POST(request: Request) {
     })
 
     return Response.json({ data, message: 'Listing created' }, { status: 201 })
-  } catch {
+  } catch (error) {
+    if (isValidationError(error)) {
+      return Response.json(
+        {
+          error: 'Validation failed',
+          fieldErrors: error.fieldErrors ?? {}
+        },
+        { status: 422 }
+      )
+    }
+
     await deleteListingImage(listingId)
     return Response.json({ error: 'Request failed' }, { status: 500 })
   }
