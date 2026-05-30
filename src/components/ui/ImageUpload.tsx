@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import Image from 'next/image'
+import { useEffect, useMemo, useRef, type ChangeEvent } from 'react'
 
 interface ImageUploadProps {
   file: File | null
   onFileChange: (file: File | null) => void
+  errors: string[]
 }
 
 function formatFileSize(bytes: number): string {
@@ -19,23 +21,37 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export default function ImageUpload({ file, onFileChange }: ImageUploadProps) {
+function renderErrors(errors: string[]) {
+  if (errors.length === 0) {
+    return null
+  }
+
+  return (
+    <ul className="space-y-1 text-sm text-red-600">
+      {errors.map((error) => (
+        <li key={error}>{error}</li>
+      ))}
+    </ul>
+  )
+}
+
+export default function ImageUpload({ file, onFileChange, errors }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const previewUrl = useMemo(() => {
+    if (!file) {
+      return null
+    }
+
+    return URL.createObjectURL(file)
+  }, [file])
 
   useEffect(() => {
-    if (!file) {
-      setPreviewUrl(null)
-      return
-    }
-
-    const objectUrl = URL.createObjectURL(file)
-    setPreviewUrl(objectUrl)
-
     return () => {
-      URL.revokeObjectURL(objectUrl)
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
     }
-  }, [file])
+  }, [previewUrl])
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const selectedFile = event.target.files?.[0] ?? null
@@ -74,9 +90,12 @@ export default function ImageUpload({ file, onFileChange }: ImageUploadProps) {
           {file ? (
             <div className="space-y-4">
               {previewUrl ? (
-                <img
+                <Image
                   src={previewUrl}
                   alt={file.name}
+                  width={1200}
+                  height={900}
+                  unoptimized
                   className="h-56 w-full rounded-lg object-cover"
                 />
               ) : null}
@@ -106,6 +125,8 @@ export default function ImageUpload({ file, onFileChange }: ImageUploadProps) {
             </div>
           )}
         </div>
+
+        {renderErrors(errors)}
       </div>
     </section>
   )
