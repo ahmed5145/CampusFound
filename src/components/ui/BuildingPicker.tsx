@@ -1,0 +1,98 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+
+import type { SelectedBuilding } from '../../lib/buildings'
+
+interface BuildingPickerProps {
+  isOpen: boolean
+  buildings: SelectedBuilding[]
+  selectedBuilding: SelectedBuilding | null
+  onSelectBuilding: (building: SelectedBuilding) => void
+  onClose: () => void
+}
+
+function normalizeQuery(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+export default function BuildingPicker({
+  isOpen,
+  buildings,
+  selectedBuilding,
+  onSelectBuilding,
+  onClose
+}: BuildingPickerProps) {
+  const [query, setQuery] = useState('')
+
+  const filteredBuildings = useMemo(() => {
+    const normalizedQuery = normalizeQuery(query)
+
+    if (!normalizedQuery) {
+      return buildings
+    }
+
+    return buildings.filter((building) => building.name.toLowerCase().includes(normalizedQuery))
+  }, [buildings, query])
+
+  if (!isOpen) {
+    return null
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-white">
+      <div className="flex h-full flex-col">
+        <header className="border-b border-gray-200 px-4 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Choose a building</h2>
+              <p className="text-sm text-gray-600">Search and pick a campus location.</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700"
+            >
+              Close
+            </button>
+          </div>
+
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search buildings"
+            className="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+          />
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="space-y-2">
+            {filteredBuildings.length === 0 ? (
+              <p className="py-8 text-center text-sm text-gray-500">No buildings match your search.</p>
+            ) : (
+              filteredBuildings.map((building) => {
+                const isSelected = selectedBuilding?.id === building.id
+
+                return (
+                  <button
+                    key={building.id}
+                    type="button"
+                    onClick={() => onSelectBuilding(building)}
+                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm ${
+                      isSelected ? 'border-gray-900 bg-gray-50 text-gray-900' : 'border-gray-200 text-gray-700'
+                    }`}
+                  >
+                    <span>{building.name}</span>
+                    {isSelected ? <span className="text-xs font-medium uppercase tracking-wide">Selected</span> : null}
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
