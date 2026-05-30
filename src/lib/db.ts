@@ -6,7 +6,6 @@ import type { ListingStatus, LocationType } from '../types/db-schema'
 export interface BuildingRecord {
   id: string
   name: string
-  created_at: string
 }
 
 export interface ListingPublic {
@@ -78,8 +77,7 @@ function getSupabase() {
 function toBuilding(record: BuildingRow): BuildingRecord {
   return {
     id: record.id,
-    name: record.name,
-    created_at: record.created_at
+    name: record.name
   }
 }
 
@@ -177,6 +175,18 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
 
   const rows = (data ?? []) as ListingRow[]
   const buildingIds = [...new Set(rows.map((row) => row.building_id))]
+  if (buildingIds.length === 0) {
+    return {
+      data: [],
+      pageInfo: {
+        limit: input.limit,
+        offset: input.offset,
+        hasMore: typeof count === 'number' ? input.offset < count : false,
+        ...(typeof count === 'number' ? { total: count } : {})
+      }
+    }
+  }
+
   const { data: buildings, error: buildingError } = await supabase
     .from('buildings')
     .select('id, name, created_at')
