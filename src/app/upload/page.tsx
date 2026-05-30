@@ -4,11 +4,12 @@ import { useState } from 'react'
 
 import ImageUpload from '../../components/ui/ImageUpload'
 import UploadForm from '../../components/forms/UploadForm'
+import type { LocationType } from '../../types/db-schema'
 
 export interface UploadDraft {
   selectedImage: File | null
   building: string
-  locationType: string
+  locationType: LocationType | ''
   locationDetails: string
   description: string
 }

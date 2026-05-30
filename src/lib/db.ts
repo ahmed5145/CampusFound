@@ -118,6 +118,7 @@ export async function getBuildings(): Promise<BuildingRecord[]> {
     .order('name', { ascending: true })
 
   if (error) {
+    console.error("SUPABASE ERROR:", error)
     throw error
   }
 
