@@ -9,15 +9,12 @@ const publicUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const publicAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+// Fail fast: these public vars are required for the client to operate correctly.
 if (!publicUrl || !publicAnonKey) {
-	// In local dev it's acceptable but TypeScript consumers should guard usage
-	// Runtime will error when attempting to use the client without env vars.
-	// Keep this check so developers get a clear message early.
-	// eslint-disable-next-line no-console
-	console.warn('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY env vars')
+	throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables')
 }
 
-export const supabase: SupabaseClient = createClient(publicUrl ?? '', publicAnonKey ?? '', {
+export const supabase: SupabaseClient = createClient(publicUrl, publicAnonKey, {
 	auth: { persistSession: false }
 })
 

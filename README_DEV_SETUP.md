@@ -30,3 +30,12 @@ npm run dev
 Notes:
 - `SUPABASE_SERVICE_ROLE_KEY` must NEVER be used in client-side bundles. Keep it server-only (CI, Vercel secrets).
 - PostHog key set in `NEXT_PUBLIC_POSTHOG_KEY` is used client-side for analytics.
+
+Server-only modules:
+- When you create modules that must only run on the server (database access, service-role Supabase usage, storage helpers), add this import at the top of the file to prevent accidental client-side imports in Next.js:
+
+```ts
+import 'server-only'
+```
+
+Read `process.env.ADMIN_SECRET` directly inside server routes or server-only modules; do not export secrets from shared modules.
