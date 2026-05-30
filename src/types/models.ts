@@ -1,4 +1,5 @@
-export type LocationType = 'Lost & Found' | 'Campus Safety' | 'Other'
+import type { LocationType } from './db-schema'
+
 export type ModerationStatus = 'active' | 'removed'
 
 export interface Item {

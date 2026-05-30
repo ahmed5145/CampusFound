@@ -1,3 +1,5 @@
+export type LocationType = 'lost_and_found' | 'campus_safety' | 'other'
+
 export interface Building {
   id: string
   name: string
@@ -9,7 +11,7 @@ export interface Listing {
   image_url: string
   photo_hash?: string | null
   building_id: string
-  location_type: string
+  location_type: LocationType
   location_details?: string | null
   description?: string | null
   status: string
