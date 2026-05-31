@@ -70,7 +70,19 @@ export default function BuildingPicker({
         <div className="flex-1 overflow-y-auto px-4 py-4">
           <div className="space-y-2">
             {filteredBuildings.length === 0 ? (
-              <p className="py-8 text-center text-sm text-gray-500">No buildings match your search. Try another building name.</p>
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center">
+                <p className="text-sm font-medium text-gray-900">No buildings found.</p>
+                <p className="mt-2 text-sm text-gray-600">Try a different building name or clear the search field.</p>
+                {query ? (
+                  <button
+                    type="button"
+                    onClick={() => setQuery('')}
+                    className="mt-4 inline-flex items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                  >
+                    Clear search
+                  </button>
+                ) : null}
+              </div>
             ) : (
               filteredBuildings.map((building) => {
                 const isSelected = selectedBuilding?.id === building.id

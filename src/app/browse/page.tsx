@@ -38,6 +38,9 @@ export default function Page() {
   const buildingsRequestIdRef = useRef(0)
 
   const searchParamsString = searchParams.toString()
+  const hasActiveFilters = Boolean(selectedBuildingId || selectedLocationType)
+
+  const loadingCards = Array.from({ length: 4 }, (_, index) => index)
 
   function formatLocationType(item: ListingPublic) {
     const baseType = item.location_type.replaceAll('_', ' ')
@@ -244,78 +247,116 @@ export default function Page() {
             </select>
           </label>
         </div>
-        <div className="flex justify-end mt-2">
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedBuildingId(null)
-              setSelectedLocationType('')
-              setListings([])
-              setOffset(0)
-              paginationInFlightRef.current = false
-              updateUrl(null, '')
-            }}
-            className="text-sm text-gray-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:rounded-sm"
-          >
-            Clear filters
-          </button>
-        </div>
-      </div>
+        {isLoading ? (
+          <div className="grid gap-6">
+            {loadingCards.map((index) => (
+              <article key={index} className="animate-pulse overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  <div className="h-48 w-full rounded-lg bg-gray-200 sm:h-32 sm:w-36 sm:shrink-0" />
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="h-4 w-1/3 rounded bg-gray-200" />
+                    <div className="h-4 w-2/3 rounded bg-gray-200" />
+                    <div className="h-4 w-full rounded bg-gray-200" />
+                    <div className="h-4 w-5/6 rounded bg-gray-200" />
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
 
-      {isLoading ? <p className="mb-4 text-sm text-gray-600">Loading listings…</p> : null}
-      {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="mb-4 text-sm text-red-600">Could not load listings.</p> : null}
 
-      {!isLoading && !error && listings.length === 0 ? (
-        <p className="mb-4 text-sm text-gray-600">No listings match the current filters.</p>
-      ) : null}
+        {!isLoading && !error && listings.length === 0 ? (
+          <div className="mb-4 rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-600">
+            <p className="font-medium text-gray-900">No listings found.</p>
+            <p className="mt-1 leading-6">
+              {hasActiveFilters
+                ? 'Try clearing the filters or choose a different building.'
+                : 'Try again later or report a found item if you have one to share.'}
+            </p>
+            {hasActiveFilters ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedBuildingId(null)
+                  setSelectedLocationType('')
+                  setListings([])
+                  setOffset(0)
+                  paginationInFlightRef.current = false
+                  updateUrl(null, '')
+                }}
+                className="mt-4 inline-flex items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              >
+                Clear filters
+              </button>
+            ) : null}
+          </div>
+        ) : null}
 
-      <div className="grid gap-6">
-        {listings.map((item) => (
-          <Link key={item.id} href={`/items/${item.id}`} className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white">
-            <div className="flex gap-4">
-              <div className="w-36 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                {item.image_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image_url} alt={`Listing ${item.id}`} className="h-24 w-full object-cover" />
-                ) : (
-                  <div className="h-24 w-full bg-gray-200" />
-                )}
-                <div className="mt-2 px-1 text-xs text-gray-500">Posted {timeAgo(item.created_at)}</div>
-              </div>
+        <div className="grid gap-6">
+          {listings.map((item) => (
+            <Link
+              key={item.id}
+              href={`/items/${item.id}`}
+              className="block overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:p-5"
+            >
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <div className="w-full shrink-0 overflow-hidden rounded-lg bg-gray-100 sm:w-36">
+                  {item.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.image_url} alt={`Listing ${item.id}`} className="h-48 w-full object-cover sm:h-32" />
+                  ) : (
+                    <div className="h-48 w-full bg-gray-200 sm:h-32" />
+                  )}
+                  <div className="mt-2 px-1 text-xs text-gray-500">Posted {timeAgo(item.created_at)}</div>
+                </div>
 
-              <div className="flex flex-1 flex-col">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium text-gray-900">{item.building?.name}</div>
+                    <div className="truncate text-sm font-medium text-gray-900">{item.building?.name}</div>
                   </div>
 
                   <div className="mt-2 text-sm text-gray-700">
                     <div className="font-medium text-gray-800">{formatLocationType(item)}</div>
-                  {item.location_details ? <div className="mt-1 text-gray-600">{item.location_details}</div> : null}
-                  {item.description ? <div className="mt-2 text-gray-600">{item.description}</div> : null}
+                    {item.location_details ? <div className="mt-1 text-gray-600">{item.location_details}</div> : null}
+                    {item.description ? <div className="mt-2 text-gray-600">{item.description}</div> : null}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-      {hasMore ? (
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            onClick={() => {
-              // prevent duplicate pagination clicks; set guard immediately
-              if (isLoading || isLoadingMore || paginationInFlightRef.current) return
-              paginationInFlightRef.current = true
-              setIsLoadingMore(true)
-              setOffset((prev) => prev + limit)
-            }}
-            disabled={isLoadingMore || isLoading}
-            className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-          >
-            {isLoadingMore ? 'Loading…' : 'Load more'}
-          </button>
+            </Link>
+          ))}
         </div>
-      ) : null}
+
+        {hasMore ? (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                // prevent duplicate pagination clicks; set guard immediately
+                if (isLoading || isLoadingMore || paginationInFlightRef.current) return
+                paginationInFlightRef.current = true
+                setIsLoadingMore(true)
+                setOffset((prev) => prev + limit)
+              }}
+              disabled={isLoadingMore || isLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            >
+              {isLoadingMore ? (
+                <>
+                  <span
+                    className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent"
+                    aria-hidden="true"
+                  />
+                  <span>Loading…</span>
+                </>
+              ) : (
+                'Load more'
+              )}
+            </button>
+          </div>
+        ) : null}
+      </div>
     </main>
   )
 }

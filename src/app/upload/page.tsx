@@ -278,6 +278,7 @@ export default function Page() {
       <UploadForm
         draft={draft}
         onBuildingFieldClick={openBuildingPicker}
+        isBuildingFieldLoading={isBuildingsLoading}
         onLocationTypeChange={handleLocationTypeChange}
         onOtherLocationTypeChange={handleOtherLocationTypeChange}
         onLocationDetailsChange={handleLocationDetailsChange}
@@ -308,9 +309,16 @@ export default function Page() {
         type="button"
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className="rounded-xl border border-gray-300 px-4 py-3 text-sm font-medium text-gray-900"
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-gray-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
-        {isSubmitting ? 'Submitting...' : 'Submit Listing'}
+        {isSubmitting ? (
+          <>
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />
+            <span>Submitting…</span>
+          </>
+        ) : (
+          'Submit Listing'
+        )}
       </button>
     </main>
   )

@@ -13,6 +13,7 @@ const LOCATION_TYPE_OPTIONS = [
 interface UploadFormProps {
   draft: UploadDraft
   onBuildingFieldClick: () => void
+  isBuildingFieldLoading: boolean
   onLocationTypeChange: (event: ChangeEvent<HTMLSelectElement>) => void
   onOtherLocationTypeChange: (event: ChangeEvent<HTMLInputElement>) => void
   onLocationDetailsChange: (event: ChangeEvent<HTMLTextAreaElement>) => void
@@ -42,6 +43,7 @@ function renderErrors(errors: string[]) {
 export default function UploadForm({
   draft,
   onBuildingFieldClick,
+  isBuildingFieldLoading,
   onLocationTypeChange,
   onOtherLocationTypeChange,
   onLocationDetailsChange,
@@ -69,10 +71,11 @@ export default function UploadForm({
             type="button"
             onClick={onBuildingFieldClick}
             aria-haspopup="dialog"
-            className="flex w-full items-center justify-between rounded-xl border border-gray-300 px-4 py-3 text-left text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            disabled={isBuildingFieldLoading}
+            className="flex w-full items-center justify-between rounded-xl border border-gray-300 px-4 py-3 text-left text-sm text-gray-900 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
           >
-            <span>{draft.selectedBuilding?.name ?? 'Choose a building'}</span>
-            <span className="text-gray-500">Select</span>
+            <span>{draft.selectedBuilding?.name ?? (isBuildingFieldLoading ? 'Loading buildings…' : 'Choose a building')}</span>
+            <span className="text-gray-500">{isBuildingFieldLoading ? 'Please wait' : 'Select'}</span>
           </button>
           {showBuildingErrors ? renderErrors(validation.fieldErrors.selectedBuilding) : null}
         </div>

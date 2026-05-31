@@ -1,8 +1,43 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import type { ListingPublic } from '../../lib/db'
 import { timeAgo } from '../../lib/time'
+
+function LoadingState() {
+  return (
+    <main className="mx-auto w-full max-w-3xl px-4 py-8">
+      <article className="animate-pulse rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="h-64 rounded-lg bg-gray-200" />
+        <div className="mt-4 h-4 w-24 rounded bg-gray-200" />
+        <div className="mt-6 space-y-3">
+          <div className="h-8 w-2/3 rounded bg-gray-200" />
+          <div className="h-4 w-full rounded bg-gray-200" />
+          <div className="h-4 w-5/6 rounded bg-gray-200" />
+          <div className="h-4 w-4/6 rounded bg-gray-200" />
+        </div>
+      </article>
+    </main>
+  )
+}
+
+function EmptyState({ title, message }: { title: string; message: string }) {
+  return (
+    <main className="mx-auto w-full max-w-3xl px-4 py-8">
+      <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center shadow-sm">
+        <p className="text-sm font-medium text-gray-900">{title}</p>
+        <p className="mt-2 text-sm leading-6 text-gray-600">{message}</p>
+        <Link
+          href="/browse"
+          className="mt-5 inline-flex items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+        >
+          Browse listings
+        </Link>
+      </section>
+    </main>
+  )
+}
 
 export default function ItemDetail({ id }: { id: string }) {
   const [item, setItem] = useState<ListingPublic | null>(null)
@@ -48,27 +83,15 @@ export default function ItemDetail({ id }: { id: string }) {
   }, [id])
 
   if (isLoading) {
-    return (
-      <main className="mx-auto w-full max-w-3xl px-4 py-8">
-        <p className="text-center text-sm text-gray-600">Loading listing…</p>
-      </main>
-    )
+    return <LoadingState />
   }
 
   if (notFound) {
-    return (
-      <main className="mx-auto w-full max-w-3xl px-4 py-8">
-        <p className="text-center text-sm text-gray-600">Listing not found.</p>
-      </main>
-    )
+    return <EmptyState title="Listing not found." message="This listing may have been removed or expired." />
   }
 
   if (error) {
-    return (
-      <main className="mx-auto w-full max-w-3xl px-4 py-8">
-        <p className="text-center text-sm text-red-600">{error}</p>
-      </main>
-    )
+    return <EmptyState title="Could not load listing." message="Try again in a moment or browse recent listings instead." />
   }
 
   if (!item) {
