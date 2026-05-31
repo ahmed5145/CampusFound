@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { ListingPublic } from '../../lib/db'
+import { timeAgo } from '../../lib/time'
 
 export default function ItemDetail({ id }: { id: string }) {
   const [item, setItem] = useState<ListingPublic | null>(null)
@@ -84,6 +85,7 @@ export default function ItemDetail({ id }: { id: string }) {
           ) : (
             <div className="h-48 w-full rounded-lg bg-gray-100" />
           )}
+          <div className="mt-2 text-sm text-gray-500">Posted {timeAgo(item.created_at)}</div>
         </div>
 
         <h1 className="text-2xl font-semibold text-gray-900">{item.building?.name ?? 'Listing'}</h1>
@@ -105,18 +107,8 @@ export default function ItemDetail({ id }: { id: string }) {
           </div>
 
           <div>
-            <strong className="mr-2">Created:</strong>
-            <span>{new Date(item.created_at).toLocaleString()}</span>
-          </div>
-
-          <div>
-            <strong className="mr-2">Expires:</strong>
-            <span>{new Date(item.expires_at).toLocaleString()}</span>
-          </div>
-
-          <div>
-            <strong className="mr-2">Status:</strong>
-            <span>{item.status}</span>
+            <strong className="mr-2">Posted:</strong>
+            <span>{timeAgo(item.created_at)}</span>
           </div>
         </div>
       </article>
