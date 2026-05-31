@@ -1,13 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import type { ListingPublic, ListingsPage } from '../../lib/db'
 import { timeAgo } from '../../lib/time'
 import { fetchBuildings, type SelectedBuilding } from '../../lib/buildings'
 import { LOCATION_TYPES, LOCATION_TYPE_LABELS } from '../../config/constants'
 
 export default function Page() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [listings, setListings] = useState<ListingPublic[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -16,12 +20,46 @@ export default function Page() {
   const [buildings, setBuildings] = useState<SelectedBuilding[]>([])
   const [isBuildingsLoading, setIsBuildingsLoading] = useState(true)
   const [buildingsError, setBuildingsError] = useState<string | null>(null)
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null)
-  const [selectedLocationType, setSelectedLocationType] = useState<string>('')
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(() => searchParams.get('building_id'))
+  const [selectedLocationType, setSelectedLocationType] = useState<string>(() => searchParams.get('location_type') ?? '')
 
   // pagination params (offset kept for future pagination)
   const [offset, setOffset] = useState(0)
   const limit = 20
+
+  const searchParamsString = searchParams.toString()
+
+  const currentFilterState = useMemo(
+    () => ({
+      buildingId: searchParams.get('building_id'),
+      locationType: searchParams.get('location_type') ?? ''
+    }),
+    [searchParamsString]
+  )
+
+  useEffect(() => {
+    setSelectedBuildingId(currentFilterState.buildingId)
+    setSelectedLocationType(currentFilterState.locationType)
+  }, [currentFilterState.buildingId, currentFilterState.locationType])
+
+  function updateUrl(nextBuildingId: string | null, nextLocationType: string) {
+    const params = new URLSearchParams(searchParamsString)
+
+    if (nextBuildingId) {
+      params.set('building_id', nextBuildingId)
+    } else {
+      params.delete('building_id')
+    }
+
+    if (nextLocationType) {
+      params.set('location_type', nextLocationType)
+    } else {
+      params.delete('location_type')
+    }
+
+    const query = params.toString()
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
+  }
 
   useEffect(() => {
     let isActive = true
@@ -101,8 +139,10 @@ export default function Page() {
               value={selectedBuildingId ?? ''}
               disabled={isBuildingsLoading}
               onChange={(e) => {
-                setSelectedBuildingId(e.target.value || null)
+                const nextBuildingId = e.target.value || null
+                setSelectedBuildingId(nextBuildingId)
                 setOffset(0)
+                updateUrl(nextBuildingId, selectedLocationType)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none"
             >
@@ -122,8 +162,10 @@ export default function Page() {
             <select
               value={selectedLocationType}
               onChange={(e) => {
-                setSelectedLocationType(e.target.value)
+                const nextLocationType = e.target.value
+                setSelectedLocationType(nextLocationType)
                 setOffset(0)
+                updateUrl(selectedBuildingId, nextLocationType)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none"
             >
