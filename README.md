@@ -1,6 +1,8 @@
 # CampusFound
 
-CampusFound is a Next.js app for campus found-item listings. Users can upload a photo, choose a building, set a location where they left the item they found, and browse or open individual listings.
+CampusFound is a mobile-first found-item board for campus communities. It gives users a fast way to post items they’ve found with a photo, building, and location details, while making it just as easy to browse active listings and open a full item detail page.
+
+The app supports a lightweight workflow for the common campus case: choose a building, select a location type, add an optional custom "Other" specification when needed, and publish the listing with minimal friction.
 
 ## Features
 
