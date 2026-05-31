@@ -52,7 +52,7 @@ export default function BuildingPicker({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700"
+              className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               Close
             </button>
@@ -63,7 +63,7 @@ export default function BuildingPicker({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by building name"
-            className="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+            className="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white placeholder:text-gray-400"
           />
         </header>
 
@@ -80,7 +80,7 @@ export default function BuildingPicker({
                     key={building.id}
                     type="button"
                     onClick={() => onSelectBuilding(building)}
-                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm ${
+                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
                       isSelected ? 'border-gray-900 bg-gray-50 text-gray-900' : 'border-gray-200 text-gray-700'
                     }`}
                   >

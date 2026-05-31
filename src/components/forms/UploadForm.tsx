@@ -69,7 +69,7 @@ export default function UploadForm({
             type="button"
             onClick={onBuildingFieldClick}
             aria-haspopup="dialog"
-            className="flex w-full items-center justify-between rounded-xl border border-gray-300 px-4 py-3 text-left text-sm text-gray-900"
+            className="flex w-full items-center justify-between rounded-xl border border-gray-300 px-4 py-3 text-left text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             <span>{draft.selectedBuilding?.name ?? 'Choose a building'}</span>
             <span className="text-gray-500">Select</span>
@@ -82,7 +82,7 @@ export default function UploadForm({
           <select
             value={draft.locationType}
             onChange={onLocationTypeChange}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none"
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             <option value="">Select location type</option>
             {LOCATION_TYPE_OPTIONS.map((option) => (
@@ -102,7 +102,7 @@ export default function UploadForm({
               value={draft.otherLocationType}
               onChange={onOtherLocationTypeChange}
               placeholder="Enter a short custom type"
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white placeholder:text-gray-400"
             />
             {showOtherLocationErrors ? renderErrors(validation.fieldErrors.otherLocationType) : null}
           </label>
@@ -115,7 +115,7 @@ export default function UploadForm({
             onChange={onLocationDetailsChange}
             placeholder="Add the exact spot or a helpful landmark"
             rows={4}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white placeholder:text-gray-400"
           />
           {showLocationDetailsErrors ? renderErrors(validation.fieldErrors.locationDetails) : null}
         </label>
@@ -127,7 +127,7 @@ export default function UploadForm({
             onChange={onDescriptionChange}
             placeholder="Add identifying details like color, brand, or stickers"
             rows={5}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white placeholder:text-gray-400"
           />
           {showDescriptionErrors ? renderErrors(validation.fieldErrors.description) : null}
         </label>

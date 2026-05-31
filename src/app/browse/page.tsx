@@ -207,7 +207,7 @@ export default function Page() {
                 paginationInFlightRef.current = false
                 updateUrl(nextBuildingId, selectedLocationType)
               }}
-              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none"
+              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               <option value="">All buildings</option>
               {buildings.map((b) => (
@@ -233,7 +233,7 @@ export default function Page() {
                 paginationInFlightRef.current = false
                 updateUrl(selectedBuildingId, nextLocationType)
               }}
-              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none"
+              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               <option value="">All types</option>
               {LOCATION_TYPES.map((t) => (
@@ -255,7 +255,7 @@ export default function Page() {
               paginationInFlightRef.current = false
               updateUrl(null, '')
             }}
-            className="text-sm text-gray-600 hover:underline"
+            className="text-sm text-gray-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white focus-visible:rounded-sm"
           >
             Clear filters
           </button>
@@ -271,7 +271,7 @@ export default function Page() {
 
       <div className="grid gap-6">
         {listings.map((item) => (
-          <Link key={item.id} href={`/items/${item.id}`} className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow">
+          <Link key={item.id} href={`/items/${item.id}`} className="block rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white">
             <div className="flex gap-4">
               <div className="w-36 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                 {item.image_url ? (
@@ -310,7 +310,7 @@ export default function Page() {
               setOffset((prev) => prev + limit)
             }}
             disabled={isLoadingMore || isLoading}
-            className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 disabled:opacity-50"
+            className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             {isLoadingMore ? 'Loading…' : 'Load more'}
           </button>
