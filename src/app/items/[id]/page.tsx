@@ -1,4 +1,6 @@
-// TODO: Implement item detail page
-export default function Page() {
-  return null
+import ItemDetail from '../../../components/items/ItemDetail'
+
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  return <ItemDetail id={id} />
 }
