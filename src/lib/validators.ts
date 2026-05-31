@@ -17,6 +17,7 @@ export interface ListingCreateValidationResult {
   image: File
   buildingId: string
   locationType: LocationType
+  otherLocationType: string | null
   locationDetails: string | null
   description: string | null
 }
@@ -177,10 +178,14 @@ export function validateListingCreateFormData(formData: FormData): ListingCreate
     locationType = normalizeLocationType(rawLocation, fieldErrors, 'location_type')
   }
 
+  const otherLocationType = normalizeString(formData.get('other_location_type'))
   const locationDetails = normalizeString(formData.get('location_details'))
   const description = normalizeString(formData.get('description'))
 
   // length limits
+  if (otherLocationType && otherLocationType.length > 100) {
+    addFieldError(fieldErrors, 'other_location_type', 'Must be 100 characters or fewer.')
+  }
   if (locationDetails && locationDetails.length > 300) {
     addFieldError(fieldErrors, 'location_details', 'Must be 300 characters or fewer.')
   }
@@ -196,6 +201,7 @@ export function validateListingCreateFormData(formData: FormData): ListingCreate
     })(),
     buildingId: buildingId as string,
     locationType: locationType as LocationType,
+    otherLocationType,
     locationDetails,
     description
   }

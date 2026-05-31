@@ -17,6 +17,7 @@ CREATE TABLE listings (
   photo_hash TEXT,
   building_id UUID NOT NULL REFERENCES buildings(id) ON DELETE RESTRICT,
   location_type TEXT NOT NULL,
+  other_location_type TEXT,
   location_details TEXT,
   description TEXT,
   status TEXT NOT NULL DEFAULT 'active',

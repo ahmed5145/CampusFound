@@ -13,6 +13,7 @@ export interface Listing {
   photo_hash?: string | null
   building_id: string
   location_type: LocationType
+  other_location_type?: string | null
   location_details?: string | null
   description?: string | null
   status: ListingStatus

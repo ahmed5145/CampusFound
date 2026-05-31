@@ -75,6 +75,11 @@ export default function ItemDetail({ id }: { id: string }) {
     return null
   }
 
+  const locationTypeLabel =
+    item.location_type === 'other' && item.other_location_type
+      ? `Other - ${item.other_location_type}`
+      : item.location_type.replaceAll('_', ' ')
+
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8">
       <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -93,7 +98,7 @@ export default function ItemDetail({ id }: { id: string }) {
         <div className="mt-4 space-y-2 text-sm text-gray-700">
           <div>
             <strong className="mr-2">Location type:</strong>
-            <span>{item.location_type.replaceAll('_', ' ')}</span>
+            <span>{locationTypeLabel}</span>
           </div>
 
           <div>

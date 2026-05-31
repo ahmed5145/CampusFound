@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import type { ListingPublic, ListingsPage } from '../../lib/db'
@@ -29,7 +29,25 @@ export default function Page() {
   const [offset, setOffset] = useState(0)
   const limit = 20
 
+  // Request coordination: ensure only the latest listings request can update state
+  const listingsRequestIdRef = useRef(0)
+  const listingsAbortControllerRef = useRef<AbortController | null>(null)
+  // Guard to prevent duplicate pagination requests before React state updates
+  const paginationInFlightRef = useRef(false)
+  // separate request id for buildings so we can ignore stale building responses
+  const buildingsRequestIdRef = useRef(0)
+
   const searchParamsString = searchParams.toString()
+
+  function formatLocationType(item: ListingPublic) {
+    const baseType = item.location_type.replaceAll('_', ' ')
+
+    if (item.location_type === 'other' && item.other_location_type) {
+      return `Other - ${item.other_location_type}`
+    }
+
+    return baseType
+  }
 
   const currentFilterState = useMemo(
     () => ({
@@ -65,6 +83,7 @@ export default function Page() {
 
   useEffect(() => {
     let isActive = true
+    const requestId = ++buildingsRequestIdRef.current
 
     async function loadBuildings() {
       setIsBuildingsLoading(true)
@@ -72,13 +91,15 @@ export default function Page() {
       try {
         const data = await fetchBuildings()
         if (!isActive) return
+        // only accept if this request is still the latest
+        if (requestId !== buildingsRequestIdRef.current) return
         setBuildings(data)
-      } catch {
+      } catch (err) {
         if (!isActive) return
         setBuildings([])
         setBuildingsError('Could not load buildings.')
       } finally {
-        if (isActive) setIsBuildingsLoading(false)
+        if (isActive && requestId === buildingsRequestIdRef.current) setIsBuildingsLoading(false)
       }
     }
 
@@ -91,17 +112,28 @@ export default function Page() {
 
   // Fetch listings when filters or offset change
   useEffect(() => {
-    let isActive = true
+    // coordinate requests so only the latest may update state
+    const requestId = ++listingsRequestIdRef.current
+
+    // abort previous listings request
+    if (listingsAbortControllerRef.current) {
+      listingsAbortControllerRef.current.abort()
+    }
+    const controller = new AbortController()
+    listingsAbortControllerRef.current = controller
+
+    const loadingMore = offset > 0
+    // mark pagination in-flight if this is a pagination request
+    if (loadingMore) {
+      paginationInFlightRef.current = true
+      setIsLoadingMore(true)
+    } else {
+      setIsLoading(true)
+    }
+
+    setError(null)
 
     async function load() {
-      const loadingMore = offset > 0
-      if (loadingMore) {
-        setIsLoadingMore(true)
-      } else {
-        setIsLoading(true)
-      }
-      setError(null)
-
       try {
         const params = new URLSearchParams()
         params.set('limit', String(limit))
@@ -110,13 +142,15 @@ export default function Page() {
         if (selectedLocationType) params.set('location_type', selectedLocationType)
 
         const url = `/api/items?${params.toString()}`
-        const res = await fetch(url)
+        const res = await fetch(url, { signal: controller.signal })
         if (!res.ok) {
           throw new Error('Failed to load')
         }
 
         const payload = (await res.json()) as ListingsPage
-        if (!isActive) return
+
+        // ignore if a newer request started
+        if (requestId !== listingsRequestIdRef.current) return
 
         const items = payload.data ?? []
         if (offset === 0) {
@@ -126,12 +160,17 @@ export default function Page() {
         }
 
         setHasMore(Boolean(payload.pageInfo?.hasMore))
-      } catch (err) {
-        if (!isActive) return
+      } catch (err: any) {
+        // if aborted, silently ignore
+        if (err?.name === 'AbortError') return
+        // ignore if a newer request started
+        if (requestId !== listingsRequestIdRef.current) return
         setError('Could not load listings.')
       } finally {
-        if (!isActive) return
+        // only toggle loading states if this is still the latest request
+        if (requestId !== listingsRequestIdRef.current) return
         if (offset > 0) {
+          paginationInFlightRef.current = false
           setIsLoadingMore(false)
         } else {
           setIsLoading(false)
@@ -142,8 +181,10 @@ export default function Page() {
     void load()
 
     return () => {
-      isActive = false
+      // abort this request when effect cleans up
+      controller.abort()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBuildingId, selectedLocationType, offset])
 
   return (
@@ -162,6 +203,8 @@ export default function Page() {
                 setSelectedBuildingId(nextBuildingId)
                 setListings([])
                 setOffset(0)
+                // clear any pending pagination guard when filters change
+                paginationInFlightRef.current = false
                 updateUrl(nextBuildingId, selectedLocationType)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none"
@@ -186,6 +229,8 @@ export default function Page() {
                 setSelectedLocationType(nextLocationType)
                 setListings([])
                 setOffset(0)
+                // clear any pending pagination guard when filters change
+                paginationInFlightRef.current = false
                 updateUrl(selectedBuildingId, nextLocationType)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none"
@@ -207,6 +252,7 @@ export default function Page() {
               setSelectedLocationType('')
               setListings([])
               setOffset(0)
+              paginationInFlightRef.current = false
               updateUrl(null, '')
             }}
             className="text-sm text-gray-600 hover:underline"
@@ -243,7 +289,7 @@ export default function Page() {
                   </div>
 
                   <div className="mt-2 text-sm text-gray-700">
-                    <div className="font-medium text-gray-800">{item.location_type.replaceAll('_', ' ')}</div>
+                    <div className="font-medium text-gray-800">{formatLocationType(item)}</div>
                   {item.location_details ? <div className="mt-1 text-gray-600">{item.location_details}</div> : null}
                   {item.description ? <div className="mt-2 text-gray-600">{item.description}</div> : null}
                 </div>
@@ -256,7 +302,13 @@ export default function Page() {
         <div className="mt-6 flex justify-center">
           <button
             type="button"
-            onClick={() => setOffset((prev) => prev + limit)}
+            onClick={() => {
+              // prevent duplicate pagination clicks; set guard immediately
+              if (isLoading || isLoadingMore || paginationInFlightRef.current) return
+              paginationInFlightRef.current = true
+              setIsLoadingMore(true)
+              setOffset((prev) => prev + limit)
+            }}
             disabled={isLoadingMore || isLoading}
             className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 disabled:opacity-50"
           >

@@ -13,6 +13,7 @@ export interface ListingPublic {
   image_url: string
   building: BuildingRecord
   location_type: LocationType
+  other_location_type: string | null
   location_details: string | null
   description: string | null
   status: ListingStatus
@@ -27,6 +28,7 @@ export interface CreateListingInput {
   imageUrl: string
   buildingId: string
   locationType: LocationType
+  otherLocationType: string | null
   locationDetails: string | null
   description: string | null
 }
@@ -59,6 +61,7 @@ type ListingRow = {
   image_url: string
   building_id: string
   location_type: LocationType
+  other_location_type: string | null
   location_details: string | null
   description: string | null
   status: ListingStatus
@@ -87,6 +90,7 @@ function toListing(record: ListingInsertRow, building: BuildingRow): ListingPubl
     image_url: record.image_url,
     building: toBuilding(building),
     location_type: record.location_type,
+    other_location_type: record.other_location_type ?? null,
     location_details: record.location_details ?? null,
     description: record.description ?? null,
     status: record.status,
@@ -134,10 +138,11 @@ export async function createListing(input: CreateListingInput): Promise<ListingD
       image_url: input.imageUrl,
       building_id: input.buildingId,
       location_type: input.locationType,
+      other_location_type: input.otherLocationType,
       location_details: input.locationDetails,
       description: input.description
     })
-    .select('id, image_url, building_id, location_type, location_details, description, status, created_at, expires_at')
+    .select('id, image_url, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at')
     .single<ListingRow>()
 
   if (insertError) {
@@ -153,7 +158,7 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
 
   let query = supabase
     .from('listings')
-    .select('id, image_url, building_id, location_type, location_details, description, status, created_at, expires_at', {
+    .select('id, image_url, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at', {
       count: 'exact'
     })
     .eq('status', 'active')
@@ -224,7 +229,7 @@ export async function getListingById(id: string): Promise<ListingDetail | null> 
 
   const { data, error } = await supabase
     .from('listings')
-    .select('id, image_url, building_id, location_type, location_details, description, status, created_at, expires_at')
+    .select('id, image_url, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at')
     .eq('id', id)
     .maybeSingle<ListingRow>()
 

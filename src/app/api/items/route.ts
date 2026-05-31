@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       imageUrl: uploadResult.publicUrl,
       buildingId: input.buildingId,
       locationType: input.locationType,
+      otherLocationType: input.otherLocationType,
       locationDetails: input.locationDetails,
       description: input.description
     })
