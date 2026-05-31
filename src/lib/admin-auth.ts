@@ -1,0 +1,111 @@
+export const ADMIN_SESSION_COOKIE_NAME = 'campusfound_admin_session'
+export const ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 8
+
+type AdminSessionPayload = {
+  v: 1
+  iat: number
+  exp: number
+}
+
+function encodeText(value: string): Uint8Array {
+  return new TextEncoder().encode(value)
+}
+
+function decodeText(value: Uint8Array): string {
+  return new TextDecoder().decode(value)
+}
+
+function toArrayBuffer(value: Uint8Array): ArrayBuffer {
+  return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer
+}
+
+function base64UrlEncode(value: Uint8Array): string {
+  let binary = ''
+
+  for (let index = 0; index < value.length; index += 0x8000) {
+    binary += String.fromCharCode(...value.subarray(index, index + 0x8000))
+  }
+
+  return globalThis
+    .btoa(binary)
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '')
+}
+
+function base64UrlDecode(value: string): Uint8Array {
+  const normalized = value.replaceAll('-', '+').replaceAll('_', '/')
+  const padded = `${normalized}${'='.repeat((4 - (normalized.length % 4)) % 4)}`
+  const binary = globalThis.atob(padded)
+  const bytes = new Uint8Array(binary.length)
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index)
+  }
+
+  return bytes
+}
+
+async function importHmacKey(secret: string): Promise<CryptoKey> {
+  return globalThis.crypto.subtle.importKey(
+    'raw',
+    toArrayBuffer(encodeText(secret)),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign', 'verify']
+  )
+}
+
+function createSessionPayload(now: number = Date.now()): AdminSessionPayload {
+  const issuedAt = Math.floor(now / 1000)
+
+  return {
+    v: 1,
+    iat: issuedAt,
+    exp: issuedAt + ADMIN_SESSION_TTL_SECONDS
+  }
+}
+
+export async function createAdminSessionCookieValue(secret: string, now: number = Date.now()): Promise<string> {
+  const payload = createSessionPayload(now)
+  const payloadBytes = encodeText(JSON.stringify(payload))
+  const key = await importHmacKey(secret)
+  const signature = new Uint8Array(await globalThis.crypto.subtle.sign('HMAC', key, toArrayBuffer(payloadBytes)))
+
+  return `v1.${base64UrlEncode(payloadBytes)}.${base64UrlEncode(signature)}`
+}
+
+export async function verifyAdminSessionCookieValue(
+  secret: string,
+  cookieValue: string | undefined,
+  now: number = Date.now()
+): Promise<boolean> {
+  if (!cookieValue) {
+    return false
+  }
+
+  const parts = cookieValue.split('.')
+  if (parts.length !== 3 || parts[0] !== 'v1') {
+    return false
+  }
+
+  try {
+    const payloadBytes = base64UrlDecode(parts[1])
+    const payload = JSON.parse(decodeText(payloadBytes)) as Partial<AdminSessionPayload>
+
+    if (payload.v !== 1 || typeof payload.iat !== 'number' || typeof payload.exp !== 'number') {
+      return false
+    }
+
+    if (Math.floor(now / 1000) >= payload.exp) {
+      return false
+    }
+
+    const signatureBytes = base64UrlDecode(parts[2])
+    const key = await importHmacKey(secret)
+
+    return globalThis.crypto.subtle.verify('HMAC', key, toArrayBuffer(signatureBytes), toArrayBuffer(payloadBytes))
+  } catch {
+    return false
+  }
+}

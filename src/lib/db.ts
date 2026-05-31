@@ -40,6 +40,11 @@ export interface GetListingsInput {
   offset: number
 }
 
+export interface GetAdminListingsInput {
+  limit: number
+  offset: number
+}
+
 export interface ListingsPage {
   data: ListingSummary[]
   pageInfo: {
@@ -224,6 +229,68 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
   }
 }
 
+export async function getAdminListings(input: GetAdminListingsInput): Promise<ListingsPage> {
+  const supabase = getSupabase()
+
+  const query = supabase
+    .from('listings')
+    .select('id, image_url, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at', {
+      count: 'exact'
+    })
+    .order('created_at', { ascending: false })
+    .range(input.offset, input.offset + input.limit - 1)
+
+  const { data, error, count } = await query
+
+  if (error) {
+    throw error
+  }
+
+  const rows = (data ?? []) as ListingRow[]
+  const buildingIds = [...new Set(rows.map((row) => row.building_id))]
+  if (buildingIds.length === 0) {
+    return {
+      data: [],
+      pageInfo: {
+        limit: input.limit,
+        offset: input.offset,
+        hasMore: typeof count === 'number' ? input.offset < count : false,
+        ...(typeof count === 'number' ? { total: count } : {})
+      }
+    }
+  }
+
+  const { data: buildings, error: buildingError } = await supabase
+    .from('buildings')
+    .select('id, name, created_at')
+    .in('id', buildingIds)
+
+  if (buildingError) {
+    throw buildingError
+  }
+
+  const buildingMap = new Map<string, BuildingRow>((buildings ?? []).map((row) => [row.id, row as BuildingRow]))
+
+  const listings = rows.map((row) => {
+    const building = buildingMap.get(row.building_id)
+    if (!building) {
+      throw new Error(`Missing building for listing ${row.id}`)
+    }
+
+    return toListing(row as ListingInsertRow, building)
+  })
+
+  return {
+    data: listings,
+    pageInfo: {
+      limit: input.limit,
+      offset: input.offset,
+      hasMore: typeof count === 'number' ? input.offset + listings.length < count : listings.length === input.limit,
+      ...(typeof count === 'number' ? { total: count } : {})
+    }
+  }
+}
+
 export async function getListingById(id: string): Promise<ListingDetail | null> {
   const supabase = getSupabase()
 
@@ -243,4 +310,26 @@ export async function getListingById(id: string): Promise<ListingDetail | null> 
 
   const building = await getBuildingById(data.building_id)
   return toListing(data as ListingInsertRow, building)
+}
+
+export async function updateListingStatus(id: string, status: ListingStatus): Promise<ListingDetail | null> {
+  const supabase = getSupabase()
+
+  const { data: updatedRow, error } = await supabase
+    .from('listings')
+    .update({ status })
+    .eq('id', id)
+    .select('id, image_url, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at')
+    .maybeSingle<ListingRow>()
+
+  if (error) {
+    throw error
+  }
+
+  if (!updatedRow) {
+    return null
+  }
+
+  const building = await getBuildingById(updatedRow.building_id)
+  return toListing(updatedRow as ListingInsertRow, building)
 }
