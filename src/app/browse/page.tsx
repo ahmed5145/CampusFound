@@ -178,6 +178,20 @@ export default function Page() {
             </select>
           </label>
         </div>
+        <div className="flex justify-end mt-2">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedBuildingId(null)
+              setSelectedLocationType('')
+              setOffset(0)
+              updateUrl(null, '')
+            }}
+            className="text-sm text-gray-600 hover:underline"
+          >
+            Clear filters
+          </button>
+        </div>
       </div>
 
       {isLoading ? <p className="mb-4 text-sm text-gray-600">Loading listings…</p> : null}
