@@ -45,6 +45,7 @@ Table: `listings`
 | `photo_hash` | TEXT | No | Optional hash used for future duplicate detection. |
 | `building_id` | UUID | Yes | Foreign key to `buildings.id`. |
 | `location_type` | TEXT | Yes | Must match one of the allowed location type values. |
+| `other_location_type` | TEXT | No | Custom label shown when `location_type = other`. |
 | `location_details` | TEXT | No | Optional free-text detail about where the item was found. |
 | `description` | TEXT | No | Optional descriptive text from the uploader. |
 | `status` | TEXT | Yes | Moderation state. Defaults to `active`. |
@@ -74,6 +75,7 @@ Required:
 
 Optional:
 - `photo_hash`
+- `other_location_type`
 - `location_details`
 - `description`
 
@@ -98,6 +100,11 @@ Meaning:
 - `lost_and_found`: item was turned in at a campus lost-and-found location.
 - `campus_safety`: item was turned in to campus safety.
 - `other`: item was found somewhere else and the uploader will provide a detail if needed.
+
+### `other_location_type`
+Meaning:
+- When `location_type = other`, this field stores the user's custom specification.
+- Browse and detail views render it as `Other - <value>` when present.
 
 ## 6) Expiration Rules
 
@@ -159,6 +166,7 @@ The following fields are intentionally excluded from V1 to keep the model minima
 
 This document should be kept in sync with:
 - `db/migrations/001_create_buildings_and_listings.sql`
+- `db/migrations/002_add_other_location_type_to_listings.sql`
 - `src/types/db-schema.ts`
 - `docs/USER_FLOW.md`
 - `docs/V1_SCOPE_LOCK.md`

@@ -23,7 +23,9 @@ Tasks (order matters):
   - Create: `.env.example` (list SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, POSTHOG_KEY, ADMIN_SECRET)
 
 0.3. Run DB migration (local/staging):
-  - Run: `db/migrations/001_create_buildings_and_listings.sql`
+  - Run migrations in order:
+    - `db/migrations/001_create_buildings_and_listings.sql`
+    - `db/migrations/002_add_other_location_type_to_listings.sql`
   - Create seed file to populate buildings:
     - Create: `db/seeds/001_seed_buildings.sql`
 
@@ -46,6 +48,7 @@ Tasks (order matters):
 1.3. Implement API routes for listings
   - Modify / Implement: `src/app/api/items/route.ts`
     - Support: POST (create listing with image_url and returns new id), GET (listings with optional query filters), GET /items/:id via dynamic route if necessary (or rely on frontend API path)
+    - Preserve `other_location_type` for `location_type = other`
 
 1.4. Add simple server-side photo hash generation (optional but recommended)
   - Modify: `src/lib/db.ts` (compute `photo_hash` server-side if image uploaded) — use a hash helper
@@ -182,6 +185,7 @@ Exact file list summary (create / modify)
 - Create: `.env.example`
 - Create: `db/seeds/001_seed_buildings.sql`
 - Modify: `db/migrations/001_create_buildings_and_listings.sql` (if seed/adjustments needed)
+- Create: `db/migrations/002_add_other_location_type_to_listings.sql`
 - Modify: `src/lib/supabaseClient.ts`
 - Create: `src/lib/config.ts`
 - Create: `src/lib/storage.ts`

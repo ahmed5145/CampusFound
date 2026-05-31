@@ -17,10 +17,10 @@ Target: ship MVP to Luther College in ~2 weeks. This roadmap breaks work into ph
   - Create Supabase project, enable Storage (1.0h) — Owner: DevOps/Backend
   - Create PostHog project and get API key (0.5h) — Owner: DevOps
   - Configure Vercel project and env vars (0.5h) — Owner: DevOps
-  - Run DB migration `db/migrations/001_create_buildings_and_listings.sql` (0.5h) — Owner: Backend
+  - Run DB migrations `db/migrations/001_create_buildings_and_listings.sql` and `db/migrations/002_add_other_location_type_to_listings.sql` (0.5h) — Owner: Backend
   - Seed `buildings` with Luther College canonical list (1.0h) — Owner: Backend
 - Estimated effort: 3–4 hours
-- Definition of Done: infra provisioned, migration applied, seed data present, env vars set in staging.
+- Definition of Done: infra provisioned, migrations applied, seed data present, env vars set in staging.
 
 ---
 

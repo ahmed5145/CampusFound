@@ -5,8 +5,8 @@ This document captures the finalized V1 scope for CampusFound targeted at a Luth
 ## Must Have (launch blockers)
 - Homepage with clear CTAs: Browse + Upload
 - Browse (`/browse`) with building filter (`?building=...`) and list of `ItemCard`s (thumbnail, building, brief description, created_at)
-- Upload (`/upload`) with camera/file picker, required fields: image, building, location_type; optional: location_details, description; client validation
-- Item Details (`/items/[id]`) with large image, building, location_type, location_details, description, created_at, expires_at; removed-state messaging
+- Upload (`/upload`) with camera/file picker, required fields: image, building_id, location_type; conditional `other_location_type` for Other; optional: location_details, description; client validation
+- Item Details (`/items/[id]`) with large image, building, location_type, other_location_type, location_details, description, created_at, expires_at; removed-state messaging
 - Admin ability to mark listings `removed` / `active` (protected `/admin` area)
 - Supabase Storage for images and Supabase DB for `buildings` and `listings`
 - PostHog instrumentation for core events (see Analytics section)
@@ -56,10 +56,13 @@ This document captures the finalized V1 scope for CampusFound targeted at a Luth
 
 ## Launch Checklist (condensed)
 - Infrastructure: Supabase DB + Storage, PostHog, Vercel, env vars
-- Run DB migration: `db/migrations/001_create_buildings_and_listings.sql`
+- Run DB migrations in order:
+  - `db/migrations/001_create_buildings_and_listings.sql`
+  - `db/migrations/002_add_other_location_type_to_listings.sql`
 - Seed `buildings` for Luther College
 - Implement Must-Have features (Homepage, Browse, Upload, Item Details, Admin remove/restore)
 - Image upload pipeline + `photo_hash` optional support
+- Custom Other label support via `other_location_type`
 - PostHog instrumentation for Must events
 - Basic QA across iOS/Android/desktop
 - Admin moderation process and simple documentation

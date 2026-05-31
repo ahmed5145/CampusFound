@@ -17,9 +17,9 @@ This document captures the approved user flow for CampusFound's V1. It focuses o
 ---
 
 ## Browse Listings
-- URL: `/browse` (query params supported: `?building=...`, `?location_type=...`, `?q=...`)
+- URL: `/browse` (query params supported: `?building_id=...`, `?location_type=...`)
 - Purpose: discovery of current found items; filter by building and location type; navigate to item details.
-- Components: Header, optional search bar, filter bar (building + location-type pills), sort (newest default), listing grid/list of `ItemCard`, empty-state with Upload CTA.
+- Components: Header, filter bar (building + location type selects), listing grid/list of `ItemCard`, empty-state with Upload CTA.
 - User actions: Apply filters (updates URL), tap `ItemCard` → `/items/[id]`, tap Upload → `/upload`.
 - Navigation paths: `/browse` → `/items/[id]` → back returns to `/browse` preserving filters and scroll position.
 - Success states: Filtered results load quickly; back-button returns to same state.
@@ -31,7 +31,7 @@ This document captures the approved user flow for CampusFound's V1. It focuses o
 ## Upload Item
 - URL: `/upload`
 - Purpose: create a new found-item listing with minimal friction (image + required fields only).
-- Components: Header (back + help), camera/file image picker with preview, building selector (required), location type selector (required, options: Lost & Found / Campus Safety / Other), location details (optional; required only for some "Other" workflows), description (optional), submit button, small expiry/moderation copy.
+- Components: Header (back + help), camera/file image picker with preview, building selector (required), location type selector (required, options: Lost & Found / Campus Safety / Other), conditional "Please specify" input for Other, location details (optional), description (optional), submit button, small expiry/moderation copy.
 - User actions: Take/select image → choose building → select location type → optionally fill details → Submit.
 - Navigation paths: `/upload` → on success redirect to `/browse` (with a success toast and optionally focused filters) or `/items/[id]` (team choice; default: `/browse`).
 - Success states: Confirmation message: "Your listing is live" with CTA to view listings or report another item.
@@ -43,7 +43,7 @@ This document captures the approved user flow for CampusFound's V1. It focuses o
 ## Item Details
 - URL: `/items/[id]`
 - Purpose: show full details for a listing so claimants can identify items and locate retrieval points.
-- Components: Header (back), large image (tap to fullscreen), meta (building, location_type, location_details), description, created_at and expires_at, removed-state messaging, moderator-only controls (hidden for public).
+- Components: Header (back), large image (tap to fullscreen), meta (building, location_type with optional Other - custom label, location_details), description, created_at and expires_at, removed-state messaging, moderator-only controls (hidden for public).
 - User actions: Inspect image, share link, tap building → filter browse by building.
 - Navigation paths: `/browse` → `/items/[id]` → back to `/browse` preserving state.
 - Success states: Clear item details displayed; share works; back returns to browse.
@@ -66,7 +66,8 @@ This document captures the approved user flow for CampusFound's V1. It focuses o
 
 ## Cross-route Rules
 - No user accounts for public flows. Admin area is protected separately.
-- Required upload fields: `image`, `building`, `location_type`.
+- Required upload fields: `image`, `building_id`, `location_type`.
+- When `location_type = other`, the custom `other_location_type` value is stored and rendered alongside the location type.
 - Listings expire after 60 days (displayed to users).
 - Soft-delete moderation: `status = removed` (public shows removed message, not full delete).
 - Preserve browse filters and scroll position across navigation.

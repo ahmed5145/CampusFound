@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CampusFound
+
+CampusFound is a Next.js app for campus found-item listings. Users can upload a photo, choose a building, set a location type, optionally add a custom "please specify" value for Other, and browse or open individual listings.
+
+## Features
+
+- Mobile-first upload flow with image preview and validation
+- Browse page with building and location-type filters
+- Item detail page for individual listings
+- Persistent `other_location_type` support for listings marked as Other
+- Supabase-backed storage and database
+
+## Project Structure
+
+- `src/app/upload` - upload flow and submission
+- `src/app/browse` - browse and filter listings
+- `src/app/items/[id]` - item detail page
+- `src/app/api/items` - listings API routes
+- `src/lib` - Supabase, DB, validation, and helper utilities
+- `db/migrations` - database migrations
+- `docs` - product and implementation docs
 
 ## Getting Started
 
-First, run the development server:
+1. Install dependencies.
+
+```bash
+npm install
+```
+
+2. Create your environment file from `.env.example` and fill in the Supabase values.
+
+3. Apply the database migrations in order.
+
+```bash
+db/migrations/001_create_buildings_and_listings.sql
+db/migrations/002_add_other_location_type_to_listings.sql
+```
+
+4. Start the development server.
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Database Notes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `other_location_type` is stored on `listings` for entries marked as `other`.
+- The initial table creation lives in `db/migrations/001_create_buildings_and_listings.sql`.
+- The follow-up schema migration for the custom Other value lives in `db/migrations/002_add_other_location_type_to_listings.sql`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Documentation
 
-## Learn More
+- [docs/DATA_MODEL.md](docs/DATA_MODEL.md)
+- [docs/USER_FLOW.md](docs/USER_FLOW.md)
+- [docs/V1_SCOPE_LOCK.md](docs/V1_SCOPE_LOCK.md)
+- [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md)
+- [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js
+- TypeScript
+- Supabase
