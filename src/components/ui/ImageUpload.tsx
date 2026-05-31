@@ -70,12 +70,12 @@ export default function ImageUpload({ file, onFileChange, errors }: ImageUploadP
     <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
       <div className="space-y-1">
         <h2 className="text-lg font-semibold text-gray-900">Image</h2>
-        <p className="text-sm text-gray-600">Choose a photo from your device storage.</p>
+        <p className="text-sm text-gray-600">Add a clear photo from your phone or laptop.</p>
       </div>
 
       <div className="mt-4 space-y-4">
         <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white">
-          Select image
+          Choose photo
           <input
             ref={inputRef}
             type="file"
@@ -117,9 +117,9 @@ export default function ImageUpload({ file, onFileChange, errors }: ImageUploadP
           ) : (
             <div className="flex min-h-44 items-center justify-center text-center">
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-900">No image selected</p>
+                <p className="text-sm font-medium text-gray-900">No photo selected yet</p>
                 <p className="text-xs leading-5 text-gray-500">
-                  Select a JPEG, PNG, or WebP file from your device to continue.
+                  Upload a JPEG, PNG, or WebP photo to continue.
                 </p>
               </div>
             </div>

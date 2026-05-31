@@ -45,8 +45,8 @@ export default function BuildingPicker({
         <header className="border-b border-gray-200 px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Choose a building</h2>
-              <p className="text-sm text-gray-600">Search and pick a campus location.</p>
+              <h2 className="text-lg font-semibold text-gray-900">Select a building</h2>
+              <p className="text-sm text-gray-600">Search your campus building.</p>
             </div>
 
             <button
@@ -62,7 +62,7 @@ export default function BuildingPicker({
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search buildings"
+            placeholder="Search by building name"
             className="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
           />
         </header>
@@ -70,7 +70,7 @@ export default function BuildingPicker({
         <div className="flex-1 overflow-y-auto px-4 py-4">
           <div className="space-y-2">
             {filteredBuildings.length === 0 ? (
-              <p className="py-8 text-center text-sm text-gray-500">No buildings match your search.</p>
+              <p className="py-8 text-center text-sm text-gray-500">No buildings match your search. Try another building name.</p>
             ) : (
               filteredBuildings.map((building) => {
                 const isSelected = selectedBuilding?.id === building.id

@@ -265,7 +265,7 @@ export default function Page() {
         <p className="text-sm font-medium uppercase tracking-wide text-gray-500">Upload</p>
         <h1 className="text-3xl font-semibold text-gray-900">Create a found-item listing</h1>
         <p className="text-sm leading-6 text-gray-600">
-          This is the upload page shell. Image picking, validation, and submission come next.
+          Add a photo, choose the building, and share where it was found.
         </p>
       </header>
 

@@ -58,7 +58,7 @@ export default function UploadForm({
       <div className="space-y-1">
         <h2 className="text-lg font-semibold text-gray-900">Listing details</h2>
         <p className="text-sm text-gray-600">
-          Building selection is now handled by the picker. The other fields remain unchanged.
+          Choose your building first, then add the location type and details below.
         </p>
       </div>
 
@@ -96,12 +96,12 @@ export default function UploadForm({
 
         {draft.locationType === 'other' ? (
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-gray-800">Please specify</span>
+            <span className="text-sm font-medium text-gray-800">Custom location type</span>
             <input
               type="text"
               value={draft.otherLocationType}
               onChange={onOtherLocationTypeChange}
-              placeholder="Specify location type"
+              placeholder="Enter a short custom type"
               className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
             />
             {showOtherLocationErrors ? renderErrors(validation.fieldErrors.otherLocationType) : null}
@@ -109,11 +109,11 @@ export default function UploadForm({
         ) : null}
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-gray-800">Location Details</span>
+          <span className="text-sm font-medium text-gray-800">Location details</span>
           <textarea
             value={draft.locationDetails}
             onChange={onLocationDetailsChange}
-            placeholder="Where was the item found?"
+            placeholder="Add the exact spot or a helpful landmark"
             rows={4}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
           />
@@ -121,11 +121,11 @@ export default function UploadForm({
         </label>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-gray-800">Description</span>
+          <span className="text-sm font-medium text-gray-800">Item details</span>
           <textarea
             value={draft.description}
             onChange={onDescriptionChange}
-            placeholder="Add a short description"
+            placeholder="Add identifying details like color, brand, or stickers"
             rows={5}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
           />
