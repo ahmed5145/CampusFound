@@ -13,6 +13,7 @@ const initialDraft: UploadDraft = {
   selectedImage: null,
   selectedBuilding: null,
   locationType: '',
+  otherLocationType: '',
   locationDetails: '',
   description: ''
 }
@@ -93,7 +94,23 @@ export default function Page() {
 
   function handleLocationTypeChange(event: ChangeEvent<HTMLSelectElement>) {
     markFieldTouched('locationType')
-    updateDraft({ locationType: event.target.value as UploadDraft['locationType'] })
+    const value = event.target.value as UploadDraft['locationType']
+    // clear otherLocationType when switching away from 'other'
+    if (value !== 'other') {
+      updateDraft({ locationType: value, otherLocationType: '' })
+      // also clear any validation errors for otherLocationType by revalidating
+      setValidation((current) => ({
+        ...current,
+        fieldErrors: validateDraft({ ...draft, locationType: value, otherLocationType: '' })
+      }))
+    } else {
+      updateDraft({ locationType: value })
+    }
+  }
+
+  function handleOtherLocationTypeChange(event: ChangeEvent<HTMLInputElement>) {
+    markFieldTouched('otherLocationType')
+    updateDraft({ otherLocationType: event.target.value })
   }
 
   function handleLocationDetailsChange(event: ChangeEvent<HTMLTextAreaElement>) {
@@ -149,6 +166,10 @@ export default function Page() {
     formData.append('building_id', draft.selectedBuilding.id)
     formData.append('location_type', draft.locationType)
 
+    if (draft.locationType === 'other' && draft.otherLocationType.trim().length > 0) {
+      formData.append('other_location_type', draft.otherLocationType)
+    }
+
     if (draft.locationDetails.trim().length > 0) {
       formData.append('location_details', draft.locationDetails)
     }
@@ -196,11 +217,12 @@ export default function Page() {
     })()
   }
 
-  function mapBackendFieldErrors(fieldErrors: Record<string, string[]>) {
+  function mapBackendFieldErrors(fieldErrors: Record<string, string[]>): ValidationState['fieldErrors'] {
     return {
       selectedImage: fieldErrors.image ?? [],
       selectedBuilding: fieldErrors.building_id ?? [],
       locationType: fieldErrors.location_type ?? [],
+      otherLocationType: fieldErrors.other_location_type ?? [],
       locationDetails: fieldErrors.location_details ?? [],
       description: fieldErrors.description ?? []
     }
@@ -211,6 +233,7 @@ export default function Page() {
       selectedImage: mergeErrorLists(currentErrors.selectedImage, nextErrors.selectedImage),
       selectedBuilding: mergeErrorLists(currentErrors.selectedBuilding, nextErrors.selectedBuilding),
       locationType: mergeErrorLists(currentErrors.locationType, nextErrors.locationType),
+      otherLocationType: mergeErrorLists(currentErrors.otherLocationType, nextErrors.otherLocationType),
       locationDetails: mergeErrorLists(currentErrors.locationDetails, nextErrors.locationDetails),
       description: mergeErrorLists(currentErrors.description, nextErrors.description)
     }
@@ -246,11 +269,13 @@ export default function Page() {
         draft={draft}
         onBuildingFieldClick={openBuildingPicker}
         onLocationTypeChange={handleLocationTypeChange}
+        onOtherLocationTypeChange={handleOtherLocationTypeChange}
         onLocationDetailsChange={handleLocationDetailsChange}
         onDescriptionChange={handleDescriptionChange}
         validation={validation}
         showBuildingErrors={showBuildingErrors}
         showLocationTypeErrors={showLocationTypeErrors}
+        showOtherLocationErrors={validation.touched.otherLocationType || validation.submitAttempted}
         showLocationDetailsErrors={showLocationDetailsErrors}
         showDescriptionErrors={showDescriptionErrors}
       />

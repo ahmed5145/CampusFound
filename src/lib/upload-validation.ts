@@ -8,6 +8,7 @@ export function createEmptyFieldErrors(): ValidationFieldErrors {
     selectedImage: [],
     selectedBuilding: [],
     locationType: [],
+    otherLocationType: [],
     locationDetails: [],
     description: []
   }
@@ -18,6 +19,7 @@ export function createEmptyTouched(): ValidationTouched {
     selectedImage: false,
     selectedBuilding: false,
     locationType: false,
+    otherLocationType: false,
     locationDetails: false,
     description: false
   }
@@ -52,6 +54,12 @@ export function validateDraft(draft: UploadDraft): ValidationFieldErrors {
 
   if (!draft.locationType) {
     fieldErrors.locationType.push('Please select a location type.')
+  }
+
+  if (draft.locationType === 'other') {
+    if (!draft.otherLocationType || draft.otherLocationType.trim().length === 0) {
+      fieldErrors.otherLocationType.push('Please specify the location type.')
+    }
   }
 
   if (draft.locationDetails.length > 300) {

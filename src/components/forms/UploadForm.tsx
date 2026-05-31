@@ -14,11 +14,13 @@ interface UploadFormProps {
   draft: UploadDraft
   onBuildingFieldClick: () => void
   onLocationTypeChange: (event: ChangeEvent<HTMLSelectElement>) => void
+  onOtherLocationTypeChange: (event: ChangeEvent<HTMLInputElement>) => void
   onLocationDetailsChange: (event: ChangeEvent<HTMLTextAreaElement>) => void
   onDescriptionChange: (event: ChangeEvent<HTMLTextAreaElement>) => void
   validation: ValidationState
   showBuildingErrors: boolean
   showLocationTypeErrors: boolean
+  showOtherLocationErrors: boolean
   showLocationDetailsErrors: boolean
   showDescriptionErrors: boolean
 }
@@ -41,11 +43,13 @@ export default function UploadForm({
   draft,
   onBuildingFieldClick,
   onLocationTypeChange,
+  onOtherLocationTypeChange,
   onLocationDetailsChange,
   onDescriptionChange,
   validation,
   showBuildingErrors,
   showLocationTypeErrors,
+  showOtherLocationErrors,
   showLocationDetailsErrors,
   showDescriptionErrors
 }: UploadFormProps) {
@@ -101,6 +105,20 @@ export default function UploadForm({
           />
           {showLocationDetailsErrors ? renderErrors(validation.fieldErrors.locationDetails) : null}
         </label>
+
+        {draft.locationType === 'other' ? (
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-gray-800">Please specify</span>
+            <input
+              type="text"
+              value={draft.otherLocationType}
+              onChange={onOtherLocationTypeChange}
+              placeholder="Specify location type"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+            />
+            {showOtherLocationErrors ? renderErrors(validation.fieldErrors.otherLocationType) : null}
+          </label>
+        ) : null}
 
         <label className="block space-y-2">
           <span className="text-sm font-medium text-gray-800">Description</span>
