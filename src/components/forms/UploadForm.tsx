@@ -94,18 +94,6 @@ export default function UploadForm({
           {showLocationTypeErrors ? renderErrors(validation.fieldErrors.locationType) : null}
         </label>
 
-        <label className="block space-y-2">
-          <span className="text-sm font-medium text-gray-800">Location Details</span>
-          <textarea
-            value={draft.locationDetails}
-            onChange={onLocationDetailsChange}
-            placeholder="Where was the item found?"
-            rows={4}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
-          />
-          {showLocationDetailsErrors ? renderErrors(validation.fieldErrors.locationDetails) : null}
-        </label>
-
         {draft.locationType === 'other' ? (
           <label className="block space-y-2">
             <span className="text-sm font-medium text-gray-800">Please specify</span>
@@ -119,6 +107,18 @@ export default function UploadForm({
             {showOtherLocationErrors ? renderErrors(validation.fieldErrors.otherLocationType) : null}
           </label>
         ) : null}
+
+        <label className="block space-y-2">
+          <span className="text-sm font-medium text-gray-800">Location Details</span>
+          <textarea
+            value={draft.locationDetails}
+            onChange={onLocationDetailsChange}
+            placeholder="Where was the item found?"
+            rows={4}
+            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+          />
+          {showLocationDetailsErrors ? renderErrors(validation.fieldErrors.locationDetails) : null}
+        </label>
 
         <label className="block space-y-2">
           <span className="text-sm font-medium text-gray-800">Description</span>
