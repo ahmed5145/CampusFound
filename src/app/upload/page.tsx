@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useEffect, useState, type ChangeEvent } from 'react'
 
 import BuildingPicker from '../../components/ui/BuildingPicker'
@@ -19,6 +20,7 @@ const initialDraft: UploadDraft = {
 }
 
 export default function Page() {
+  const router = useRouter()
   const [draft, setDraft] = useState<UploadDraft>(initialDraft)
   const [validation, setValidation] = useState<ValidationState>(createValidationState(initialDraft))
   const [buildings, setBuildings] = useState<SelectedBuilding[]>([])
@@ -189,8 +191,16 @@ export default function Page() {
         })
 
         if (response.status === 201) {
-          const data = (await response.json()) as unknown
-          console.log(data)
+          const responseBody = (await response.json()) as {
+            data?: { id?: string }
+          }
+
+          if (responseBody.data?.id) {
+            router.push(`/items/${responseBody.data.id}`)
+            return
+          }
+
+          setSubmitError('Your listing was created, but we could not open it automatically. Please browse listings.')
           return
         }
 
