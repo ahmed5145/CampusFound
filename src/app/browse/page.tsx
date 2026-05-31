@@ -14,6 +14,8 @@ export default function Page() {
   const searchParams = useSearchParams()
   const [listings, setListings] = useState<ListingPublic[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // filters
@@ -92,7 +94,12 @@ export default function Page() {
     let isActive = true
 
     async function load() {
-      setIsLoading(true)
+      const loadingMore = offset > 0
+      if (loadingMore) {
+        setIsLoadingMore(true)
+      } else {
+        setIsLoading(true)
+      }
       setError(null)
 
       try {
@@ -111,12 +118,24 @@ export default function Page() {
         const payload = (await res.json()) as ListingsPage
         if (!isActive) return
 
-        setListings(payload.data ?? [])
+        const items = payload.data ?? []
+        if (offset === 0) {
+          setListings(items)
+        } else {
+          setListings((prev) => [...prev, ...items])
+        }
+
+        setHasMore(Boolean(payload.pageInfo?.hasMore))
       } catch (err) {
         if (!isActive) return
         setError('Could not load listings.')
       } finally {
-        if (isActive) setIsLoading(false)
+        if (!isActive) return
+        if (offset > 0) {
+          setIsLoadingMore(false)
+        } else {
+          setIsLoading(false)
+        }
       }
     }
 
@@ -141,6 +160,7 @@ export default function Page() {
               onChange={(e) => {
                 const nextBuildingId = e.target.value || null
                 setSelectedBuildingId(nextBuildingId)
+                setListings([])
                 setOffset(0)
                 updateUrl(nextBuildingId, selectedLocationType)
               }}
@@ -164,6 +184,7 @@ export default function Page() {
               onChange={(e) => {
                 const nextLocationType = e.target.value
                 setSelectedLocationType(nextLocationType)
+                setListings([])
                 setOffset(0)
                 updateUrl(selectedBuildingId, nextLocationType)
               }}
@@ -184,6 +205,7 @@ export default function Page() {
             onClick={() => {
               setSelectedBuildingId(null)
               setSelectedLocationType('')
+              setListings([])
               setOffset(0)
               updateUrl(null, '')
             }}
@@ -230,6 +252,18 @@ export default function Page() {
           </Link>
         ))}
       </div>
+      {hasMore ? (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setOffset((prev) => prev + limit)}
+            disabled={isLoadingMore || isLoading}
+            className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 disabled:opacity-50"
+          >
+            {isLoadingMore ? 'Loading…' : 'Load more'}
+          </button>
+        </div>
+      ) : null}
     </main>
   )
 }
