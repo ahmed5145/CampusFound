@@ -298,6 +298,8 @@ export async function getListingById(id: string): Promise<ListingDetail | null> 
     .from('listings')
     .select('id, image_url, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at')
     .eq('id', id)
+    .eq('status', 'active')
+    .gt('expires_at', new Date().toISOString())
     .maybeSingle<ListingRow>()
 
   if (error) {
