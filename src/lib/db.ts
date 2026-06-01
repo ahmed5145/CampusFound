@@ -167,6 +167,7 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
       count: 'exact'
     })
     .eq('status', 'active')
+    .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
     .range(input.offset, input.offset + input.limit - 1)
 
