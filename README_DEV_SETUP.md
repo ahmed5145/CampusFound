@@ -33,6 +33,13 @@ npm install @supabase/supabase-js posthog-js
 npm run dev
 ```
 
+6. (Optional) Run end-to-end tests (Playwright):
+
+```bash
+npm install
+npm run test:e2e
+```
+
 Notes:
 - `SUPABASE_SERVICE_ROLE_KEY` must NEVER be used in client-side bundles. Keep it server-only (CI, Vercel secrets).
 - PostHog key set in `NEXT_PUBLIC_POSTHOG_KEY` is used client-side for analytics.
