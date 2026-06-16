@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { ListingPublic } from '../../lib/db'
 import { timeAgo } from '../../lib/time'
+import ReportListingForm from './ReportListingForm'
 
 function LoadingState() {
   return (
@@ -140,6 +141,8 @@ export default function ItemDetail({ id }: { id: string }) {
           </div>
         </div>
       </article>
+
+      <ReportListingForm listingId={item.id} />
     </main>
   )
 }

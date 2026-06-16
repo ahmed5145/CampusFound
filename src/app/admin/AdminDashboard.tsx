@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import AdminReportsPanel from './AdminReportsPanel'
+
 type AdminListingStatus = 'active' | 'removed'
 
 type AdminBuilding = {
@@ -366,6 +368,8 @@ export default function AdminDashboard() {
 
         {isActionPending ? <p className="mt-4 text-xs text-gray-500">Updating listing status…</p> : null}
       </div>
+
+      <AdminReportsPanel />
     </main>
   )
 }

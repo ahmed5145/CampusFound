@@ -1,7 +1,7 @@
 import 'server-only'
 
-import type { LocationType } from '../types/db-schema'
-import { LOCATION_TYPES } from '../config/constants'
+import type { LocationType, ReportReason } from '../types/db-schema'
+import { LOCATION_TYPES, REPORT_REASONS } from '../config/constants'
 
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024
 const ACCEPTED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
@@ -252,6 +252,51 @@ export function validateListingQuery(input: QueryInput): ListingQueryValidationR
 }
 
 export function validateListingIdParam(rawId: string): string {
+  const fieldErrors: ValidationFieldErrors = {}
+  const normalized = normalizeUuid(typeof rawId === 'string' ? rawId.trim() : null, fieldErrors, 'id')
+
+  assertNoValidationErrors(fieldErrors)
+
+  return normalized as string
+}
+
+export interface ReportCreateValidationResult {
+  reason: ReportReason
+  details: string | null
+}
+
+export function validateReportCreateBody(body: unknown): ReportCreateValidationResult {
+  const fieldErrors: ValidationFieldErrors = {}
+  const record = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {}
+
+  const rawReason = normalizeQueryString(record.reason)
+  let reason: ReportReason | null = null
+  if (rawReason == null) {
+    addFieldError(fieldErrors, 'reason', 'Reason is required.')
+  } else if ((REPORT_REASONS as readonly string[]).includes(rawReason)) {
+    reason = rawReason as ReportReason
+  } else {
+    addFieldError(fieldErrors, 'reason', 'Reason is invalid.')
+  }
+
+  const details = normalizeQueryString(record.details)
+  if (details && details.length > 500) {
+    addFieldError(fieldErrors, 'details', 'Details must be 500 characters or fewer.')
+  }
+
+  if (reason === 'other' && !details) {
+    addFieldError(fieldErrors, 'details', 'Please provide details when selecting Other.')
+  }
+
+  assertNoValidationErrors(fieldErrors)
+
+  return {
+    reason: reason as ReportReason,
+    details
+  }
+}
+
+export function validateReportIdParam(rawId: string): string {
   const fieldErrors: ValidationFieldErrors = {}
   const normalized = normalizeUuid(typeof rawId === 'string' ? rawId.trim() : null, fieldErrors, 'id')
 

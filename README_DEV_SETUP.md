@@ -21,6 +21,8 @@ npm install @supabase/supabase-js posthog-js
 - Use Supabase CLI or psql to run migrations in order:
 	- `db/migrations/001_create_buildings_and_listings.sql`
 	- `db/migrations/002_add_other_location_type_to_listings.sql`
+	- `db/migrations/003_add_image_path_to_listings.sql`
+	- `db/migrations/004_create_reports.sql`
 - Run `db/seeds/001_seed_buildings.sql` if present
 
 5. Start Next dev server:
