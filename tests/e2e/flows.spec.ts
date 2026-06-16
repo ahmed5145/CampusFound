@@ -46,7 +46,7 @@ async function uploadListing(page: Page) {
 test('upload -> item detail -> report once', async ({ page }) => {
   const listingId = await uploadListing(page)
 
-  await expect(page.getByRole('heading', { name: /listing/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
   // Report listing
   await page.getByRole('button', { name: /report listing/i }).click()
@@ -54,7 +54,7 @@ test('upload -> item detail -> report once', async ({ page }) => {
   await page.getByRole('button', { name: /submit report/i }).click()
 
   // After submit, the form collapses and the component shows "Report submitted"
-  await expect(page.getByText(/report submitted|thank you/i)).toBeVisible()
+  await expect(page.getByText('Report submitted', { exact: true })).toBeVisible()
 
   // Reload should still show already reported state
   await page.reload()
@@ -71,7 +71,7 @@ test('admin can resolve report and see moderation activity', async ({ page }) =>
   await page.getByRole('button', { name: /report listing/i }).click()
   await page.getByRole('combobox', { name: /reason/i }).selectOption('spam')
   await page.getByRole('button', { name: /submit report/i }).click()
-  await expect(page.getByText(/report submitted|thank you/i)).toBeVisible()
+  await expect(page.getByText('Report submitted', { exact: true })).toBeVisible()
 
   // Admin login
   const adminSecret = process.env.ADMIN_SECRET
