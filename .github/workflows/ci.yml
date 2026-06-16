@@ -10,6 +10,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Build-time safety: Next may evaluate route modules during build.
+      # Real values should be configured as GitHub Secrets / Vercel env vars.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_STORAGE_BUCKET: ${{ secrets.SUPABASE_STORAGE_BUCKET }}
+      ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,4 +35,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Install Playwright browsers
+        if: env.NEXT_PUBLIC_SUPABASE_URL != '' && env.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' && env.ADMIN_SECRET != ''
+        run: npx playwright install --with-deps
+
+      - name: E2E tests
+        if: env.NEXT_PUBLIC_SUPABASE_URL != '' && env.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' && env.ADMIN_SECRET != ''
+        run: npm run test:e2e
 

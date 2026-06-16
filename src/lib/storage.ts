@@ -2,20 +2,24 @@ import 'server-only'
 
 import { getServiceSupabase } from './supabaseClient'
 
-const BUCKET = process.env.SUPABASE_STORAGE_BUCKET
-const STORAGE_MODE = process.env.SUPABASE_STORAGE_MODE ?? 'public'
-const SIGNED_URL_TTL_SECONDS = Number.parseInt(process.env.SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS ?? '3600', 10)
-
-if (!BUCKET) {
-  throw new Error('SUPABASE_STORAGE_BUCKET environment variable is not set')
-}
-
-if (STORAGE_MODE !== 'public' && STORAGE_MODE !== 'signed') {
+function getStorageMode(): 'public' | 'signed' {
+  const mode = (process.env.SUPABASE_STORAGE_MODE ?? 'public').trim()
+  if (mode === 'public' || mode === 'signed') {
+    return mode
+  }
   throw new Error('SUPABASE_STORAGE_MODE must be either public or signed')
 }
 
+function getSignedUrlTtlSeconds(): number {
+  const raw = process.env.SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS ?? '3600'
+  const parsed = Number.parseInt(raw, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 3600
+}
+
 function getBucket(): string {
-  return BUCKET as string
+  // Default to `listings` so builds/CI don't fail due to missing env.
+  // Production should still set this explicitly.
+  return (process.env.SUPABASE_STORAGE_BUCKET ?? 'listings').trim()
 }
 
 export function buildListingImagePath(listingId: string): string {
@@ -30,6 +34,7 @@ type UploadResult = {
 export async function uploadListingImage(listingId: string, file: Blob | Buffer | Uint8Array | ArrayBuffer): Promise<UploadResult> {
   const supabase = getServiceSupabase()
   const bucket = getBucket()
+  const storageMode = getStorageMode()
 
   const uploadPath = buildListingImagePath(listingId)
   const uploadBody = file instanceof Blob
@@ -46,7 +51,7 @@ export async function uploadListingImage(listingId: string, file: Blob | Buffer 
     throw uploadError
   }
 
-  if (STORAGE_MODE === 'public') {
+  if (storageMode === 'public') {
     const { data } = supabase.storage.from(bucket).getPublicUrl(uploadPath)
     if (!data || !data.publicUrl) {
       throw new Error('Failed to obtain public URL from storage')
@@ -82,6 +87,7 @@ export async function getListingImageDisplayUrl(input: {
 }): Promise<string | null> {
   const url = input.imageUrl?.trim() ? input.imageUrl.trim() : null
   const path = input.imagePath?.trim() ? input.imagePath.trim() : null
+  const storageMode = getStorageMode()
 
   // If it already looks like a real URL, keep it.
   if (url && looksLikeAbsoluteUrl(url)) {
@@ -89,13 +95,13 @@ export async function getListingImageDisplayUrl(input: {
   }
 
   // Signed mode: derive from storage path (preferred) or from the url field if it contains a path.
-  if (STORAGE_MODE === 'signed') {
+  if (storageMode === 'signed') {
     const supabase = getServiceSupabase()
     const bucket = getBucket()
     const objectPath = path ?? url
     if (!objectPath) return null
 
-    const ttl = Number.isFinite(SIGNED_URL_TTL_SECONDS) && SIGNED_URL_TTL_SECONDS > 0 ? SIGNED_URL_TTL_SECONDS : 3600
+    const ttl = getSignedUrlTtlSeconds()
     const { data, error } = await supabase.storage.from(bucket).createSignedUrl(objectPath, ttl)
     if (error) {
       throw error
