@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { REPORT_REASONS, REPORT_REASON_LABELS } from '../../config/constants'
 import type { ReportReason } from '../../types/db-schema'
@@ -9,13 +9,79 @@ type ReportListingFormProps = {
   listingId: string
 }
 
+function reportStorageKey(listingId: string): string {
+  return `campusfound:reported:${listingId}`
+}
+
+function markListingReported(listingId: string): void {
+  try {
+    globalThis.localStorage.setItem(reportStorageKey(listingId), '1')
+  } catch {
+    // Ignore storage failures in private browsing or restricted environments.
+  }
+}
+
+function hasLocalReportFlag(listingId: string): boolean {
+  try {
+    return globalThis.localStorage.getItem(reportStorageKey(listingId)) === '1'
+  } catch {
+    return false
+  }
+}
+
 export default function ReportListingForm({ listingId }: ReportListingFormProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [reason, setReason] = useState<ReportReason | ''>('')
   const [details, setDetails] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true)
+  const [alreadyReported, setAlreadyReported] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isActive = true
+
+    async function checkReportStatus() {
+      if (hasLocalReportFlag(listingId)) {
+        if (isActive) {
+          setAlreadyReported(true)
+          setIsCheckingStatus(false)
+        }
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/items/${listingId}/report`)
+        if (!response.ok) {
+          return
+        }
+
+        const payload = (await response.json()) as { data?: { alreadyReported?: boolean } }
+        if (!isActive) {
+          return
+        }
+
+        const reported = Boolean(payload.data?.alreadyReported)
+        setAlreadyReported(reported)
+        if (reported) {
+          markListingReported(listingId)
+        }
+      } catch {
+        // Keep the form available if the status check fails.
+      } finally {
+        if (isActive) {
+          setIsCheckingStatus(false)
+        }
+      }
+    }
+
+    void checkReportStatus()
+
+    return () => {
+      isActive = false
+    }
+  }, [listingId])
 
   function resetForm() {
     setReason('')
@@ -26,7 +92,7 @@ export default function ReportListingForm({ listingId }: ReportListingFormProps)
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (isSubmitting || !reason) {
+    if (isSubmitting || !reason || alreadyReported) {
       return
     }
 
@@ -47,9 +113,19 @@ export default function ReportListingForm({ listingId }: ReportListingFormProps)
       })
 
       if (response.status === 201) {
+        markListingReported(listingId)
+        setAlreadyReported(true)
         setSuccessMessage('Thank you. Your report was submitted for review.')
         resetForm()
         setIsOpen(false)
+        return
+      }
+
+      if (response.status === 409) {
+        markListingReported(listingId)
+        setAlreadyReported(true)
+        setIsOpen(false)
+        setSuccessMessage('You have already reported this listing.')
         return
       }
 
@@ -77,6 +153,25 @@ export default function ReportListingForm({ listingId }: ReportListingFormProps)
     }
   }
 
+  if (isCheckingStatus) {
+    return (
+      <section className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <p className="text-sm text-gray-600">Checking report status…</p>
+      </section>
+    )
+  }
+
+  if (alreadyReported) {
+    return (
+      <section className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <p className="text-sm font-medium text-gray-900">Report submitted</p>
+        <p className="mt-1 text-sm text-gray-600">
+          {successMessage ?? 'You have already reported this listing. Moderators will review it if needed.'}
+        </p>
+      </section>
+    )
+  }
+
   return (
     <section className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -99,12 +194,6 @@ export default function ReportListingForm({ listingId }: ReportListingFormProps)
           {isOpen ? 'Cancel report' : 'Report listing'}
         </button>
       </div>
-
-      {successMessage ? (
-        <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
-          {successMessage}
-        </p>
-      ) : null}
 
       {isOpen ? (
         <form className="mt-4 space-y-4" onSubmit={handleSubmit}>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import AdminReportsPanel from './AdminReportsPanel'
+import AdminModerationActivity from './AdminModerationActivity'
 
 type AdminListingStatus = 'active' | 'removed'
 
@@ -370,6 +371,7 @@ export default function AdminDashboard() {
       </div>
 
       <AdminReportsPanel />
+      <AdminModerationActivity />
     </main>
   )
 }

@@ -1,4 +1,5 @@
-import { createReport, listingExists } from '../../../../../lib/reports'
+import { DuplicateReportError, createReport, hasExistingReport, listingExists } from '../../../../../lib/reports'
+import { hashReporterIp } from '../../../../../lib/reporter-hash'
 import { rateLimit } from '../../../../../lib/rate-limit'
 import { validateListingIdParam, validateReportCreateBody } from '../../../../../lib/validators'
 
@@ -15,15 +16,38 @@ function isValidationError(error: unknown): error is ValidationErrorWithFields {
   )
 }
 
+function getRequestIp(request: Request): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    request.headers.get('x-real-ip') ??
+    'unknown'
+  )
+}
+
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params
+    const listingId = validateListingIdParam(id)
+    const reporterIpHash = hashReporterIp(getRequestIp(request))
+    const alreadyReported = await hasExistingReport(listingId, reporterIpHash)
+
+    return Response.json({ data: { alreadyReported } }, { status: 200 })
+  } catch (error) {
+    if (isValidationError(error)) {
+      return Response.json({ error: 'Validation failed' }, { status: 422 })
+    }
+
+    return Response.json({ error: 'Request failed' }, { status: 500 })
+  }
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const listingId = validateListingIdParam(id)
+    const ip = getRequestIp(request)
+    const reporterIpHash = hashReporterIp(ip)
 
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-      request.headers.get('x-real-ip') ??
-      'unknown'
     const limitResult = rateLimit(`reports:create:ip:${ip}`, { limit: 5, windowMs: 60_000 })
     if (!limitResult.allowed) {
       return Response.json(
@@ -48,11 +72,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const data = await createReport({
       listingId,
       reason: input.reason,
-      details: input.details
+      details: input.details,
+      reporterIpHash
     })
 
     return Response.json({ data, message: 'Report submitted' }, { status: 201 })
   } catch (error) {
+    if (error instanceof DuplicateReportError) {
+      return Response.json({ error: error.message }, { status: 409 })
+    }
+
     if (isValidationError(error)) {
       return Response.json(
         {

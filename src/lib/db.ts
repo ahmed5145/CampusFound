@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { createModerationEvent } from './moderation-events'
 import { getServiceSupabase } from './supabaseClient'
 import type { ListingStatus, LocationType } from '../types/db-schema'
 import { getListingImageDisplayUrl } from './storage'
@@ -79,6 +80,28 @@ type ListingRow = {
 
 type ListingInsertRow = ListingRow & {
   building?: BuildingRow | null
+}
+
+type ListingRowWithBuilding = ListingRow & {
+  buildings?: BuildingRow | BuildingRow[] | null
+}
+
+const LISTING_FIELDS =
+  'id, image_url, image_path, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at'
+
+const LISTING_SELECT_WITH_BUILDING = `${LISTING_FIELDS}, buildings ( id, name, created_at )`
+
+function extractEmbeddedBuilding(row: ListingRowWithBuilding): BuildingRow {
+  const embedded = row.buildings
+  if (Array.isArray(embedded)) {
+    if (embedded[0]) {
+      return embedded[0]
+    }
+  } else if (embedded) {
+    return embedded
+  }
+
+  throw new Error(`Missing building for listing ${row.id}`)
 }
 
 function getSupabase() {
@@ -172,7 +195,7 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
 
   let query = supabase
     .from('listings')
-    .select('id, image_url, image_path, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at', {
+    .select(LISTING_SELECT_WITH_BUILDING, {
       count: 'exact'
     })
     .eq('status', 'active')
@@ -194,9 +217,8 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
     throw error
   }
 
-  const rows = (data ?? []) as ListingRow[]
-  const buildingIds = [...new Set(rows.map((row) => row.building_id))]
-  if (buildingIds.length === 0) {
+  const rows = (data ?? []) as ListingRowWithBuilding[]
+  if (rows.length === 0) {
     return {
       data: [],
       pageInfo: {
@@ -208,28 +230,8 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
     }
   }
 
-  const { data: buildings, error: buildingError } = await supabase
-    .from('buildings')
-    .select('id, name, created_at')
-    .in('id', buildingIds)
-
-  if (buildingError) {
-    throw buildingError
-  }
-
-  const buildingMap = new Map<string, BuildingRow>((buildings ?? []).map((row) => [row.id, row as BuildingRow]))
-
-  const listings = rows.map((row) => {
-    const building = buildingMap.get(row.building_id)
-    if (!building) {
-      throw new Error(`Missing building for listing ${row.id}`)
-    }
-
-    return { row, building }
-  })
-
   const resolvedListings = await Promise.all(
-    listings.map(async ({ row, building }) => await toListing(row as ListingInsertRow, building))
+    rows.map(async (row) => await toListing(row as ListingInsertRow, extractEmbeddedBuilding(row)))
   )
 
   return {
@@ -248,7 +250,7 @@ export async function getAdminListings(input: GetAdminListingsInput): Promise<Li
 
   const query = supabase
     .from('listings')
-    .select('id, image_url, image_path, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at', {
+    .select(LISTING_SELECT_WITH_BUILDING, {
       count: 'exact'
     })
     .order('created_at', { ascending: false })
@@ -260,9 +262,8 @@ export async function getAdminListings(input: GetAdminListingsInput): Promise<Li
     throw error
   }
 
-  const rows = (data ?? []) as ListingRow[]
-  const buildingIds = [...new Set(rows.map((row) => row.building_id))]
-  if (buildingIds.length === 0) {
+  const rows = (data ?? []) as ListingRowWithBuilding[]
+  if (rows.length === 0) {
     return {
       data: [],
       pageInfo: {
@@ -274,28 +275,8 @@ export async function getAdminListings(input: GetAdminListingsInput): Promise<Li
     }
   }
 
-  const { data: buildings, error: buildingError } = await supabase
-    .from('buildings')
-    .select('id, name, created_at')
-    .in('id', buildingIds)
-
-  if (buildingError) {
-    throw buildingError
-  }
-
-  const buildingMap = new Map<string, BuildingRow>((buildings ?? []).map((row) => [row.id, row as BuildingRow]))
-
-  const listings = rows.map((row) => {
-    const building = buildingMap.get(row.building_id)
-    if (!building) {
-      throw new Error(`Missing building for listing ${row.id}`)
-    }
-
-    return { row, building }
-  })
-
   const resolvedListings = await Promise.all(
-    listings.map(async ({ row, building }) => await toListing(row as ListingInsertRow, building))
+    rows.map(async (row) => await toListing(row as ListingInsertRow, extractEmbeddedBuilding(row)))
   )
 
   return {
@@ -314,11 +295,11 @@ export async function getListingById(id: string): Promise<ListingDetail | null> 
 
   const { data, error } = await supabase
     .from('listings')
-    .select('id, image_url, image_path, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at')
+    .select(LISTING_SELECT_WITH_BUILDING)
     .eq('id', id)
     .eq('status', 'active')
     .gt('expires_at', new Date().toISOString())
-    .maybeSingle<ListingRow>()
+    .maybeSingle<ListingRowWithBuilding>()
 
   if (error) {
     throw error
@@ -328,19 +309,32 @@ export async function getListingById(id: string): Promise<ListingDetail | null> 
     return null
   }
 
-  const building = await getBuildingById(data.building_id)
-  return await toListing(data as ListingInsertRow, building)
+  return await toListing(data as ListingInsertRow, extractEmbeddedBuilding(data))
 }
 
 export async function updateListingStatus(id: string, status: ListingStatus): Promise<ListingDetail | null> {
   const supabase = getSupabase()
 
+  const { data: existing, error: existingError } = await supabase
+    .from('listings')
+    .select('status')
+    .eq('id', id)
+    .maybeSingle<{ status: ListingStatus }>()
+
+  if (existingError) {
+    throw existingError
+  }
+
+  if (!existing) {
+    return null
+  }
+
   const { data: updatedRow, error } = await supabase
     .from('listings')
     .update({ status })
     .eq('id', id)
-    .select('id, image_url, image_path, building_id, location_type, other_location_type, location_details, description, status, created_at, expires_at')
-    .maybeSingle<ListingRow>()
+    .select(LISTING_SELECT_WITH_BUILDING)
+    .maybeSingle<ListingRowWithBuilding>()
 
   if (error) {
     throw error
@@ -350,6 +344,14 @@ export async function updateListingStatus(id: string, status: ListingStatus): Pr
     return null
   }
 
-  const building = await getBuildingById(updatedRow.building_id)
-  return await toListing(updatedRow as ListingInsertRow, building)
+  if (existing.status !== status) {
+    await createModerationEvent({
+      action: status === 'removed' ? 'listing_removed' : 'listing_restored',
+      listingId: id,
+      previousStatus: existing.status,
+      newStatus: status
+    })
+  }
+
+  return await toListing(updatedRow as ListingInsertRow, extractEmbeddedBuilding(updatedRow))
 }
