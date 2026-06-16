@@ -215,7 +215,7 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
     })
     .eq('status', 'active')
     .gt('expires_at', new Date().toISOString())
-    .neq('description', E2E_TEST_LISTING_DESCRIPTION)
+    .or(`description.is.null,description.neq."${E2E_TEST_LISTING_DESCRIPTION}"`)
     .order('created_at', { ascending: false })
     .range(input.offset, input.offset + input.limit - 1)
 
