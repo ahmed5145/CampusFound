@@ -54,6 +54,10 @@ export default function LoginForm() {
           name="secret"
           type="password"
           autoComplete="current-password"
+          suppressHydrationWarning
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-bwignore="true"
           value={secret}
           onChange={(event) => setSecret(event.target.value)}
           placeholder="Enter the shared secret"
