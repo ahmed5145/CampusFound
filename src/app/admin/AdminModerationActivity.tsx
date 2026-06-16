@@ -40,7 +40,7 @@ function formatCreatedAt(value: string): string {
   })
 }
 
-export default function AdminModerationActivity() {
+export default function AdminModerationActivity({ refreshKey = 0 }: { refreshKey?: number }) {
   const [events, setEvents] = useState<ModerationEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -83,7 +83,7 @@ export default function AdminModerationActivity() {
     return () => {
       isActive = false
     }
-  }, [])
+  }, [refreshKey])
 
   return (
     <section className="mt-8">

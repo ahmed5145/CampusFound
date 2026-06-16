@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { ListingPublic } from '../../lib/db'
 import { timeAgo } from '../../lib/time'
 import ReportListingForm from './ReportListingForm'
+import { captureEvent } from '../../lib/analytics'
 
 function LoadingState() {
   return (
@@ -69,6 +70,12 @@ export default function ItemDetail({ id }: { id: string }) {
         const payload = await res.json()
         if (!isActive) return
         setItem(payload.data ?? null)
+        if (payload.data?.id) {
+          captureEvent('listing_viewed', {
+            listing_id: payload.data.id,
+            building_id: payload.data.building?.id ?? null
+          })
+        }
       } catch {
         if (!isActive) return
         setError('Could not load listing.')

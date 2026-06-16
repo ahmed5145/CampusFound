@@ -74,6 +74,11 @@ export default function AdminDashboard() {
   const [isActionPending, setIsActionPending] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [updatingIds, setUpdatingIds] = useState<Record<string, boolean>>({})
+  const [moderationRefreshKey, setModerationRefreshKey] = useState(0)
+
+  function bumpModerationActivity() {
+    setModerationRefreshKey((current) => current + 1)
+  }
 
   const totalCount = useMemo(() => listings.length, [listings.length])
   const loadingCards = Array.from({ length: 3 }, (_, index) => index)
@@ -154,6 +159,7 @@ export default function AdminDashboard() {
       if (payload?.data) {
         setListings((current) => current.map((item) => (item.id === id ? payload.data! : item)))
       }
+      bumpModerationActivity()
     } catch {
       setListings((current) => current.map((item) => (item.id === id ? currentListing : item)))
       setActionError('Could not update listing status.')
@@ -370,8 +376,8 @@ export default function AdminDashboard() {
         {isActionPending ? <p className="mt-4 text-xs text-gray-500">Updating listing status…</p> : null}
       </div>
 
-      <AdminReportsPanel />
-      <AdminModerationActivity />
+      <AdminReportsPanel onModerationChange={bumpModerationActivity} />
+      <AdminModerationActivity refreshKey={moderationRefreshKey} />
     </main>
   )
 }

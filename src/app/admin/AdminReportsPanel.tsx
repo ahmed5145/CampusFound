@@ -32,7 +32,7 @@ function formatCreatedAt(value: string): string {
   })
 }
 
-export default function AdminReportsPanel() {
+export default function AdminReportsPanel({ onModerationChange }: { onModerationChange?: () => void }) {
   const [reports, setReports] = useState<AdminReport[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -115,6 +115,7 @@ export default function AdminReportsPanel() {
       if (payload?.data) {
         setReports((current) => current.map((report) => (report.id === id ? payload.data! : report)))
       }
+      onModerationChange?.()
     } catch {
       setReports((current) => current.map((report) => (report.id === id ? currentReport : report)))
       setActionError('Could not update report status.')

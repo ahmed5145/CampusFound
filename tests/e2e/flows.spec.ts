@@ -85,14 +85,53 @@ test('admin can resolve report and see moderation activity', async ({ page }) =>
 
   // Reports panel should include the report; resolve it.
   await expect(page.getByRole('heading', { name: /^Reports$/i })).toBeVisible()
-  await page.getByRole('button', { name: /resolve/i }).first().click()
+
+  const moderationSection = page.locator('section').filter({
+    has: page.getByRole('heading', { name: /moderation activity/i })
+  })
+
+  await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.url().includes('/api/admin/reports/') &&
+        response.request().method() === 'PATCH' &&
+        response.ok()
+    ),
+    page.getByRole('button', { name: /^resolve$/i }).first().click()
+  ])
 
   // Moderation activity should include "Report resolved"
   await expect(page.getByRole('heading', { name: /moderation activity/i })).toBeVisible()
-  await expect(page.getByText(/report resolved/i)).toBeVisible()
+  await expect(moderationSection.getByText(/report resolved/i)).toBeVisible()
 
   // Verify we can still view the listing
   await page.goto(`/items/${listingId}`)
   await expect(page).toHaveURL(new RegExp(`/items/${listingId}$`))
+})
+
+test('browse filters update URL and show matching listings', async ({ page }) => {
+  const listingId = await uploadListing(page)
+
+  await page.goto('/browse')
+  await expect(page.getByRole('heading', { name: /recent listings/i })).toBeVisible()
+
+  const buildingSelect = page.getByRole('combobox').nth(0)
+  await expect(buildingSelect).toBeEnabled()
+
+  const firstBuildingOption = buildingSelect.locator('option').nth(1)
+  const buildingId = await firstBuildingOption.getAttribute('value')
+  const buildingName = (await firstBuildingOption.textContent())?.trim()
+  expect(buildingId).toBeTruthy()
+
+  await buildingSelect.selectOption(buildingId!)
+  await expect(page).toHaveURL(new RegExp(`building_id=${buildingId}`))
+
+  await expect(page.getByRole('link').filter({ hasText: buildingName! }).first()).toBeVisible()
+
+  const locationTypeSelect = page.getByRole('combobox').nth(1)
+  await locationTypeSelect.selectOption('lost_and_found')
+  await expect(page).toHaveURL(/location_type=lost_and_found/)
+
+  await expect(page.locator(`a[href="/items/${listingId}"]`)).toBeVisible()
 })
 

@@ -8,6 +8,7 @@ import { timeAgo } from '../../lib/time'
 import { fetchBuildings, type SelectedBuilding } from '../../lib/buildings'
 import { LOCATION_TYPES, LOCATION_TYPE_LABELS } from '../../config/constants'
 import PageView from '../../components/analytics/PageView'
+import { captureEvent } from '../../lib/analytics'
 
 export default function Page() {
   const router = useRouter()
@@ -214,6 +215,9 @@ export default function Page() {
               disabled={isBuildingsLoading}
               onChange={(e) => {
                 const nextBuildingId = e.target.value || null
+                if (nextBuildingId) {
+                  captureEvent('building_filter_used', { building_id: nextBuildingId })
+                }
                 updateUrl(nextBuildingId, selectedLocationType)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"

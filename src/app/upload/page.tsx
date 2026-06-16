@@ -190,6 +190,11 @@ export default function Page() {
           }
 
           if (responseBody.data?.id) {
+            captureEvent('upload_completed', {
+              listing_id: responseBody.data.id,
+              building_id: draft.selectedBuilding.id,
+              location_type: draft.locationType
+            })
             router.push(`/items/${responseBody.data.id}`)
             return
           }
