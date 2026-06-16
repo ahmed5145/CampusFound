@@ -53,13 +53,8 @@ export default function Page() {
     return baseType
   }
 
-  useEffect(() => {
-    // Reset pagination when URL filters change.
-    setListings([])
-    setOffset(0)
-    paginationInFlightRef.current = false
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParamsString])
+  const filterKey = `${selectedBuildingId ?? ''}|${selectedLocationType}`
+  const filterKeyRef = useRef<string>(filterKey)
 
   function updateUrl(nextBuildingId: string | null, nextLocationType: string) {
     const params = new URLSearchParams(searchParamsString)
@@ -93,7 +88,7 @@ export default function Page() {
         // only accept if this request is still the latest
         if (requestId !== buildingsRequestIdRef.current) return
         setBuildings(data)
-      } catch (err) {
+      } catch {
         if (!isActive) return
         setBuildings([])
         setBuildingsError('Could not load buildings.')
@@ -123,15 +118,28 @@ export default function Page() {
 
     const loadingMore = offset > 0
 
-    setError(null)
-    if (loadingMore) {
-      setIsLoadingMore(true)
-    } else {
-      setIsLoading(true)
-    }
-
     async function load() {
       try {
+        // If filters changed (back/forward navigation), reset pagination/state here
+        // (inside async) to satisfy react-hooks/set-state-in-effect.
+        if (filterKeyRef.current !== filterKey) {
+          filterKeyRef.current = filterKey
+          paginationInFlightRef.current = false
+          setError(null)
+          setListings([])
+          if (offset !== 0) {
+            setOffset(0)
+            return
+          }
+        }
+
+        setError(null)
+        if (loadingMore) {
+          setIsLoadingMore(true)
+        } else {
+          setIsLoading(true)
+        }
+
         if (loadingMore) {
           paginationInFlightRef.current = true
         }
@@ -184,7 +192,7 @@ export default function Page() {
       // abort this request when effect cleans up
       controller.abort()
     }
-  }, [selectedBuildingId, selectedLocationType, offset])
+  }, [filterKey, selectedBuildingId, selectedLocationType, offset])
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8">

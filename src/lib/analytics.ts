@@ -19,9 +19,9 @@ export function captureEvent(eventName: string, properties?: Record<string, unkn
     posthog.capture(eventName, properties)
   } catch (e) {
     // noop in case posthog isn't available in the environment
-    // eslint-disable-next-line no-console
     console.warn('PostHog capture failed', e)
   }
 }
 
-export default { initAnalytics, captureEvent }
+const analytics = { initAnalytics, captureEvent }
+export default analytics
