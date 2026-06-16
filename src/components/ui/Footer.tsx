@@ -16,6 +16,12 @@ export default function Footer() {
           <Link href="/upload" className="hover:text-gray-900">
             Report Item
           </Link>
+          <Link href="/terms" className="hover:text-gray-900">
+            Terms
+          </Link>
+          <Link href="/privacy" className="hover:text-gray-900">
+            Privacy
+          </Link>
         </div>
       </div>
     </footer>

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 
 import { createListing, getListings } from '../../../lib/db'
 import { deleteListingImage, uploadListingImage } from '../../../lib/storage'
+import { rateLimit } from '../../../lib/rate-limit'
 import { validateListingCreateFormData, validateListingQuery } from '../../../lib/validators'
 
 type ValidationErrorWithFields = Error & {
@@ -47,6 +48,24 @@ export async function POST(request: Request) {
   const listingId = randomUUID()
 
   try {
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      request.headers.get('x-real-ip') ??
+      'unknown'
+    const limiterKey = `items:create:ip:${ip}`
+    const limitResult = rateLimit(limiterKey, { limit: 6, windowMs: 60_000 })
+    if (!limitResult.allowed) {
+      return Response.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(limitResult.retryAfterSeconds)
+          }
+        }
+      )
+    }
+
     const formData = await request.formData()
     const input = validateListingCreateFormData(formData)
     const uploadResult = await uploadListingImage(listingId, input.image)
