@@ -49,7 +49,7 @@ function base64UrlDecode(value: string): Uint8Array {
 async function importHmacKey(secret: string): Promise<CryptoKey> {
   return globalThis.crypto.subtle.importKey(
     'raw',
-    toArrayBuffer(encodeText(secret)),
+    encodeText(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign', 'verify']
@@ -70,7 +70,7 @@ export async function createAdminSessionCookieValue(secret: string, now: number 
   const payload = createSessionPayload(now)
   const payloadBytes = encodeText(JSON.stringify(payload))
   const key = await importHmacKey(secret)
-  const signature = new Uint8Array(await globalThis.crypto.subtle.sign('HMAC', key, toArrayBuffer(payloadBytes)))
+  const signature = new Uint8Array(await globalThis.crypto.subtle.sign('HMAC', key, payloadBytes))
 
   return `v1.${base64UrlEncode(payloadBytes)}.${base64UrlEncode(signature)}`
 }
@@ -104,7 +104,7 @@ export async function verifyAdminSessionCookieValue(
     const signatureBytes = base64UrlDecode(parts[2])
     const key = await importHmacKey(secret)
 
-    return globalThis.crypto.subtle.verify('HMAC', key, toArrayBuffer(signatureBytes), toArrayBuffer(payloadBytes))
+    return globalThis.crypto.subtle.verify('HMAC', key, signatureBytes, payloadBytes)
   } catch {
     return false
   }

@@ -84,7 +84,7 @@ test('admin can resolve report and see moderation activity', async ({ page }) =>
   await expect(page).toHaveURL(/\/admin$/)
 
   // Reports panel should include the report; resolve it.
-  await expect(page.getByRole('heading', { name: /reports/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /^Reports$/i })).toBeVisible()
   await page.getByRole('button', { name: /resolve/i }).first().click()
 
   // Moderation activity should include "Report resolved"

@@ -41,12 +41,13 @@ export async function POST(request: Request) {
   const cookieValue = await createAdminSessionCookieValue(configuredSecret)
   const response = NextResponse.json({ data: { authenticated: true } }, { status: 200 })
 
-  const isProduction = process.env.NODE_ENV === 'production'
+  const forwardedProto = request.headers.get('x-forwarded-proto')
+  const isSecureRequest = forwardedProto === 'https' || new URL(request.url).protocol === 'https:'
   response.cookies.set({
     name: ADMIN_SESSION_COOKIE_NAME,
     value: cookieValue,
     httpOnly: true,
-    secure: isProduction,
+    secure: isSecureRequest,
     sameSite: 'strict',
     path: '/',
     maxAge: ADMIN_SESSION_TTL_SECONDS,
