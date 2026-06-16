@@ -15,8 +15,11 @@ function decodeText(value: Uint8Array): string {
   return new TextDecoder().decode(value)
 }
 
-function toArrayBuffer(value: Uint8Array): ArrayBuffer {
-  return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer
+// Copy into a fresh ArrayBuffer-backed view for WebCrypto + strict TS BufferSource typing.
+function toCryptoBytes(value: Uint8Array): Uint8Array<ArrayBuffer> {
+  const copy = new Uint8Array(value.byteLength)
+  copy.set(value)
+  return copy
 }
 
 function base64UrlEncode(value: Uint8Array): string {
@@ -49,7 +52,7 @@ function base64UrlDecode(value: string): Uint8Array {
 async function importHmacKey(secret: string): Promise<CryptoKey> {
   return globalThis.crypto.subtle.importKey(
     'raw',
-    encodeText(secret),
+    toCryptoBytes(encodeText(secret)),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign', 'verify']
@@ -70,7 +73,9 @@ export async function createAdminSessionCookieValue(secret: string, now: number 
   const payload = createSessionPayload(now)
   const payloadBytes = encodeText(JSON.stringify(payload))
   const key = await importHmacKey(secret)
-  const signature = new Uint8Array(await globalThis.crypto.subtle.sign('HMAC', key, payloadBytes))
+  const signature = new Uint8Array(
+    await globalThis.crypto.subtle.sign('HMAC', key, toCryptoBytes(payloadBytes))
+  )
 
   return `v1.${base64UrlEncode(payloadBytes)}.${base64UrlEncode(signature)}`
 }
@@ -104,7 +109,12 @@ export async function verifyAdminSessionCookieValue(
     const signatureBytes = base64UrlDecode(parts[2])
     const key = await importHmacKey(secret)
 
-    return globalThis.crypto.subtle.verify('HMAC', key, signatureBytes, payloadBytes)
+    return globalThis.crypto.subtle.verify(
+      'HMAC',
+      key,
+      toCryptoBytes(signatureBytes),
+      toCryptoBytes(payloadBytes)
+    )
   } catch {
     return false
   }
