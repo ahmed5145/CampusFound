@@ -70,11 +70,21 @@ Set `ADMIN_SECRET` and use the **Shared secret** tab on `/admin/login`.
 
 Vercel cron is configured in `vercel.json` (daily 06:00 UTC).
 
-Set `CRON_SECRET` in Vercel, then verify manually:
+Set `CRON_SECRET` in Vercel, **redeploy production**, then verify manually:
 
 ```bash
-curl -H "Authorization: Bearer $CRON_SECRET" https://your-domain/api/cron/expire-listings
+curl -H "Authorization: Bearer YOUR_CRON_SECRET" https://your-domain/api/cron/expire-listings
 ```
+
+Alternative header:
+
+```bash
+curl -H "x-cron-secret: YOUR_CRON_SECRET" https://your-domain/api/cron/expire-listings
+```
+
+The curl value must match Vercel `CRON_SECRET` exactly. On Windows, wrap the header in double quotes.
+
+Optional Supabase image transforms (Pro): set `SUPABASE_IMAGE_TRANSFORMS=true`. Leave false on free tier — browse uses full images.
 
 Expired active listings are marked `removed` and logged in moderation events.
 

@@ -7,11 +7,13 @@ function isAuthorized(request: Request): boolean {
   }
 
   const authorization = request.headers.get('authorization') ?? ''
-  if (authorization === `Bearer ${configuredSecret}`) {
+  const bearerMatch = authorization.match(/^Bearer\s+(.+)$/i)
+  const bearerSecret = bearerMatch?.[1]?.trim()
+  if (bearerSecret && bearerSecret === configuredSecret) {
     return true
   }
 
-  const headerSecret = request.headers.get('x-cron-secret')
+  const headerSecret = request.headers.get('x-cron-secret')?.trim()
   return headerSecret === configuredSecret
 }
 
