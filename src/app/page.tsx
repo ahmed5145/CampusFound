@@ -1,8 +1,10 @@
 import Link from 'next/link'
+import PageView from '../components/analytics/PageView'
 
 export default function Home() {
   return (
     <main className="flex min-h-[70vh] items-center justify-center py-10">
+      <PageView eventName="homepage_viewed" />
       <section className="w-full max-w-2xl rounded-3xl border border-gray-200 bg-white p-8 shadow-sm sm:p-10">
         <div className="space-y-4 text-center">
           <p className="text-sm font-medium uppercase tracking-wide text-gray-500">Campus Found</p>

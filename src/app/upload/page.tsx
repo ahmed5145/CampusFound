@@ -9,6 +9,7 @@ import UploadForm from '../../components/forms/UploadForm'
 import { fetchBuildings, type SelectedBuilding } from '../../lib/buildings'
 import type { UploadDraft, ValidationState, ValidationTouched } from '../../types/upload'
 import { createValidationState, validateDraft } from '../../lib/upload-validation'
+import { captureEvent } from '../../lib/analytics'
 
 const initialDraft: UploadDraft = {
   selectedImage: null,
@@ -29,6 +30,11 @@ export default function Page() {
   const [buildingsError, setBuildingsError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    captureEvent('upload_started')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     setValidation((current) => ({

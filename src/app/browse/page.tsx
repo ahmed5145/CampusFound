@@ -7,6 +7,7 @@ import type { ListingPublic, ListingsPage } from '../../lib/db'
 import { timeAgo } from '../../lib/time'
 import { fetchBuildings, type SelectedBuilding } from '../../lib/buildings'
 import { LOCATION_TYPES, LOCATION_TYPE_LABELS } from '../../config/constants'
+import PageView from '../../components/analytics/PageView'
 
 export default function Page() {
   const router = useRouter()
@@ -192,6 +193,13 @@ export default function Page() {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8">
+      <PageView
+        eventName="browse_viewed"
+        properties={{
+          building_id: selectedBuildingId,
+          location_type: selectedLocationType || null
+        }}
+      />
       <div className="mb-6 flex flex-col gap-3">
         <h1 className="text-2xl font-semibold text-gray-900">Recent listings</h1>
 
