@@ -9,6 +9,7 @@ declare namespace NodeJS {
     NEXT_PUBLIC_MODERATION_CONTACT?: string
     ADMIN_SECRET?: string
     CRON_SECRET?: string
+    SUPABASE_IMAGE_TRANSFORMS?: string
     SUPABASE_STORAGE_BUCKET?: string
     SUPABASE_STORAGE_MODE?: string
     SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS?: string

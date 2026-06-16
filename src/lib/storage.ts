@@ -125,6 +125,11 @@ export function getListingImageThumbnailUrl(imageUrl: string | null, width = 320
     return null
   }
 
+  const transformsEnabled = process.env.SUPABASE_IMAGE_TRANSFORMS === 'true'
+  if (!transformsEnabled) {
+    return imageUrl
+  }
+
   const objectPublicMatch = imageUrl.match(/^(https?:\/\/[^/]+)\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/)
   if (!objectPublicMatch) {
     return imageUrl

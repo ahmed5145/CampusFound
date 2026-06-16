@@ -10,6 +10,7 @@ import { LOCATION_TYPES, LOCATION_TYPE_LABELS } from '../../config/constants'
 import PageView from '../../components/analytics/PageView'
 import { captureEvent } from '../../lib/analytics'
 import useDebounce from '../../hooks/useDebounce'
+import ListingImage from '../../components/ui/ListingImage'
 
 export default function Page() {
   const router = useRouter()
@@ -87,10 +88,6 @@ export default function Page() {
   }
 
   useEffect(() => {
-    setSearchInput(selectedSearchQuery)
-  }, [selectedSearchQuery])
-
-  useEffect(() => {
     if (debouncedSearchInput.trim() === selectedSearchQuery.trim()) {
       return
     }
@@ -159,6 +156,7 @@ export default function Page() {
           paginationInFlightRef.current = false
           setError(null)
           setListings([])
+          setSearchInput(selectedSearchQuery)
           if (offset !== 0) {
             setOffset(0)
             return
@@ -352,9 +350,9 @@ export default function Page() {
               <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="w-full shrink-0 overflow-hidden rounded-lg bg-gray-100 sm:w-36">
                   {item.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.image_thumbnail_url || item.image_url}
+                    <ListingImage
+                      imageUrl={item.image_url}
+                      thumbnailUrl={item.image_thumbnail_url}
                       alt={`Listing ${item.id}`}
                       className="h-48 w-full object-cover sm:h-32"
                       loading="lazy"
