@@ -2,7 +2,7 @@ import 'server-only'
 
 import { E2E_TEST_LISTING_DESCRIPTION } from '../config/e2e'
 import { createModerationEvent } from './moderation-events'
-import { getCampusIdForScope } from './campus'
+import { getBuildingIdsForCampusScope, getCampusIdForScope } from './campus'
 import { getServiceSupabase } from './supabaseClient'
 import type { ListingStatus, LocationType } from '../types/db-schema'
 import { getListingImageDisplayUrl, getListingImageThumbnailUrl } from './storage'
@@ -165,7 +165,7 @@ export async function getBuildings(): Promise<BuildingRecord[]> {
   let query = supabase.from('buildings').select('id, name, created_at').order('name', { ascending: true })
 
   if (campusId) {
-    query = query.eq('campus_id', campusId)
+    query = query.or(`campus_id.eq.${campusId},campus_id.is.null`)
   }
 
   const { data, error } = await query
@@ -206,14 +206,11 @@ export async function createListing(input: CreateListingInput): Promise<ListingD
 
 export async function getListings(input: GetListingsInput): Promise<ListingsPage> {
   const supabase = getSupabase()
-  const campusId = await getCampusIdForScope()
-  const listingSelect = campusId
-    ? `${LISTING_FIELDS}, buildings!inner ( id, name, created_at, campus_id )`
-    : LISTING_SELECT_WITH_BUILDING
+  const scopedBuildingIds = await getBuildingIdsForCampusScope()
 
   let query = supabase
     .from('listings')
-    .select(listingSelect, {
+    .select(LISTING_SELECT_WITH_BUILDING, {
       count: 'exact'
     })
     .eq('status', 'active')
@@ -222,8 +219,20 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
     .order('created_at', { ascending: false })
     .range(input.offset, input.offset + input.limit - 1)
 
-  if (campusId) {
-    query = query.eq('buildings.campus_id', campusId)
+  if (scopedBuildingIds) {
+    if (scopedBuildingIds.length === 0) {
+      return {
+        data: [],
+        pageInfo: {
+          limit: input.limit,
+          offset: input.offset,
+          hasMore: false,
+          total: 0
+        }
+      }
+    }
+
+    query = query.in('building_id', scopedBuildingIds)
   }
 
   if (input.buildingId) {

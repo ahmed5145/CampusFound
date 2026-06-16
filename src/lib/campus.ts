@@ -37,3 +37,22 @@ export async function getCampusIdForScope(): Promise<string | null> {
   cachedCampusId = data?.id ?? null
   return cachedCampusId
 }
+
+export async function getBuildingIdsForCampusScope(): Promise<string[] | null> {
+  const campusId = await getCampusIdForScope()
+  if (!campusId) {
+    return null
+  }
+
+  const supabase = getServiceSupabase()
+  const { data, error } = await supabase
+    .from('buildings')
+    .select('id')
+    .or(`campus_id.eq.${campusId},campus_id.is.null`)
+
+  if (error) {
+    throw error
+  }
+
+  return (data ?? []).map((row) => row.id as string)
+}
