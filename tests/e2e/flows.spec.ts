@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 
-function tinyPngBuffer(): Buffer {
-  // 1x1 transparent PNG
+import { E2E_TEST_LISTING_DESCRIPTION } from '../../src/config/e2e'
+
+function e2eTestImageBuffer(): Buffer {
+  // Opaque 1x1 red PNG (visible when scaled in listing cards; not transparent).
   const base64 =
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6q3mQAAAAASUVORK5CYII='
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
   return Buffer.from(base64, 'base64')
 }
 
@@ -15,7 +17,7 @@ async function uploadListing(page: Page) {
   await fileInput.setInputFiles({
     name: 'test.png',
     mimeType: 'image/png',
-    buffer: tinyPngBuffer()
+    buffer: e2eTestImageBuffer()
   })
 
   // Pick building via the building picker button
@@ -35,7 +37,7 @@ async function uploadListing(page: Page) {
 
   // Optional details
   await page.getByRole('textbox', { name: /location details/i }).fill('Near the front desk.')
-  await page.getByRole('textbox', { name: /item details/i }).fill('Test item for E2E.')
+  await page.getByRole('textbox', { name: /item details/i }).fill(E2E_TEST_LISTING_DESCRIPTION)
 
   await page.getByRole('button', { name: /submit listing/i }).click()
 
@@ -188,9 +190,7 @@ test('admin can remove and restore listing with moderation activity', async ({ p
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 })
 
-test('browse filters update URL and show matching listings', async ({ page }) => {
-  const listingId = await uploadListing(page)
-
+test('browse filters update URL', async ({ page }) => {
   await page.goto('/browse')
   await expect(page.getByRole('heading', { name: /recent listings/i })).toBeVisible()
 
@@ -199,18 +199,13 @@ test('browse filters update URL and show matching listings', async ({ page }) =>
 
   const firstBuildingOption = buildingSelect.locator('option').nth(1)
   const buildingId = await firstBuildingOption.getAttribute('value')
-  const buildingName = (await firstBuildingOption.textContent())?.trim()
   expect(buildingId).toBeTruthy()
 
   await buildingSelect.selectOption(buildingId!)
   await expect(page).toHaveURL(new RegExp(`building_id=${buildingId}`))
 
-  await expect(page.getByRole('link').filter({ hasText: buildingName! }).first()).toBeVisible()
-
   const locationTypeSelect = page.getByRole('combobox').nth(1)
   await locationTypeSelect.selectOption('lost_and_found')
   await expect(page).toHaveURL(/location_type=lost_and_found/)
-
-  await expect(page.locator(`a[href="/items/${listingId}"]`)).toBeVisible()
 })
 

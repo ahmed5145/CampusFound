@@ -6,6 +6,7 @@ import type { ListingPublic } from '../../lib/db'
 import { timeAgo } from '../../lib/time'
 import ReportListingForm from './ReportListingForm'
 import { captureEvent } from '../../lib/analytics'
+import ListingImage from '../ui/ListingImage'
 
 function LoadingState() {
   return (
@@ -116,8 +117,12 @@ export default function ItemDetail({ id }: { id: string }) {
       <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-4">
           {item.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={item.image_url} alt={`Listing ${item.id}`} className="w-full rounded-lg object-cover" />
+            <ListingImage
+              imageUrl={item.image_url}
+              thumbnailUrl={item.image_thumbnail_url}
+              alt={`Listing ${item.id}`}
+              className="w-full rounded-lg object-cover"
+            />
           ) : (
             <div className="h-48 w-full rounded-lg bg-gray-100" />
           )}

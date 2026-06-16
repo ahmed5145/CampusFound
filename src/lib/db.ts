@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { E2E_TEST_LISTING_DESCRIPTION } from '../config/e2e'
 import { createModerationEvent } from './moderation-events'
 import { getCampusIdForScope } from './campus'
 import { getServiceSupabase } from './supabaseClient'
@@ -30,6 +31,7 @@ export type ListingSummary = ListingPublic
 export type ListingDetail = ListingPublic
 
 export interface CreateListingInput {
+  id?: string
   imageUrl: string
   imagePath: string
   buildingId: string
@@ -182,6 +184,7 @@ export async function createListing(input: CreateListingInput): Promise<ListingD
   const { data: insertedRow, error: insertError } = await supabase
     .from('listings')
     .insert({
+      ...(input.id ? { id: input.id } : {}),
       image_url: input.imageUrl,
       image_path: input.imagePath,
       building_id: input.buildingId,
@@ -215,6 +218,7 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
     })
     .eq('status', 'active')
     .gt('expires_at', new Date().toISOString())
+    .neq('description', E2E_TEST_LISTING_DESCRIPTION)
     .order('created_at', { ascending: false })
     .range(input.offset, input.offset + input.limit - 1)
 
