@@ -10,6 +10,7 @@ export interface Building {
 export interface Listing {
   id: string
   image_url: string
+  image_path?: string | null
   photo_hash?: string | null
   building_id: string
   location_type: LocationType

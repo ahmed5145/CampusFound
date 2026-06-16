@@ -71,7 +71,8 @@ export async function POST(request: Request) {
     const uploadResult = await uploadListingImage(listingId, input.image)
 
     const data = await createListing({
-      imageUrl: uploadResult.publicUrl,
+      imageUrl: uploadResult.publicUrl ?? uploadResult.path,
+      imagePath: uploadResult.path,
       buildingId: input.buildingId,
       locationType: input.locationType,
       otherLocationType: input.otherLocationType,
