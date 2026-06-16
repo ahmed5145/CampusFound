@@ -4,7 +4,13 @@ declare namespace NodeJS {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: string
     SUPABASE_SERVICE_ROLE_KEY?: string
     NEXT_PUBLIC_POSTHOG_KEY?: string
+    NEXT_PUBLIC_CAMPUS_NAME?: string
+    NEXT_PUBLIC_CAMPUS_SLUG?: string
+    NEXT_PUBLIC_MODERATION_CONTACT?: string
     ADMIN_SECRET?: string
+    CRON_SECRET?: string
     SUPABASE_STORAGE_BUCKET?: string
+    SUPABASE_STORAGE_MODE?: string
+    SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS?: string
   }
 }

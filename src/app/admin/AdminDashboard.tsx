@@ -67,6 +67,12 @@ function previewDescription(value: string | null): string {
 
 export default function AdminDashboard() {
   const router = useRouter()
+  const [stats, setStats] = useState<{
+    active_listings: number
+    removed_listings: number
+    open_reports: number
+    moderation_events_24h: number
+  } | null>(null)
   const [listings, setListings] = useState<AdminListing[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -82,6 +88,46 @@ export default function AdminDashboard() {
 
   const totalCount = useMemo(() => listings.length, [listings.length])
   const loadingCards = Array.from({ length: 3 }, (_, index) => index)
+
+  useEffect(() => {
+    let isActive = true
+
+    async function loadStats() {
+      try {
+        const response = await fetch('/api/admin/stats')
+        if (!response.ok) {
+          return
+        }
+
+        const payload = (await response.json()) as {
+          data?: {
+            active_listings: number
+            removed_listings: number
+            open_reports: number
+            moderation_events_24h: number
+          }
+        }
+
+        if (!isActive) {
+          return
+        }
+
+        setStats(payload.data ?? null)
+      } catch {
+        if (!isActive) {
+          return
+        }
+
+        setStats(null)
+      }
+    }
+
+    void loadStats()
+
+    return () => {
+      isActive = false
+    }
+  }, [])
 
   useEffect(() => {
     let isActive = true
@@ -221,6 +267,27 @@ export default function AdminDashboard() {
           )}
         </button>
       </div>
+
+      {stats ? (
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Active listings</p>
+            <p className="mt-2 text-2xl font-semibold text-gray-900">{stats.active_listings}</p>
+          </div>
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Removed listings</p>
+            <p className="mt-2 text-2xl font-semibold text-gray-900">{stats.removed_listings}</p>
+          </div>
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Open reports</p>
+            <p className="mt-2 text-2xl font-semibold text-gray-900">{stats.open_reports}</p>
+          </div>
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Moderation (24h)</p>
+            <p className="mt-2 text-2xl font-semibold text-gray-900">{stats.moderation_events_24h}</p>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-6">
         {isLoading ? (

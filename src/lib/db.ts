@@ -1,9 +1,11 @@
 import 'server-only'
 
 import { createModerationEvent } from './moderation-events'
+import { getCampusIdForScope } from './campus'
 import { getServiceSupabase } from './supabaseClient'
 import type { ListingStatus, LocationType } from '../types/db-schema'
-import { getListingImageDisplayUrl } from './storage'
+import { getListingImageDisplayUrl, getListingImageThumbnailUrl } from './storage'
+import { toIlikePattern } from './validators'
 
 export interface BuildingRecord {
   id: string
@@ -13,6 +15,7 @@ export interface BuildingRecord {
 export interface ListingPublic {
   id: string
   image_url: string
+  image_thumbnail_url: string
   building: BuildingRecord
   location_type: LocationType
   other_location_type: string | null
@@ -39,6 +42,7 @@ export interface CreateListingInput {
 export interface GetListingsInput {
   buildingId: string | null
   locationType: LocationType | null
+  searchQuery: string | null
   limit: number
   offset: number
 }
@@ -120,10 +124,12 @@ async function toListing(record: ListingInsertRow, building: BuildingRow): Promi
     imageUrl: record.image_url ?? null,
     imagePath: record.image_path ?? null
   })
+  const thumbnailUrl = getListingImageThumbnailUrl(resolvedImageUrl)
 
   return {
     id: record.id,
     image_url: resolvedImageUrl ?? '',
+    image_thumbnail_url: thumbnailUrl ?? resolvedImageUrl ?? '',
     building: toBuilding(building),
     location_type: record.location_type,
     other_location_type: record.other_location_type ?? null,
@@ -152,10 +158,15 @@ async function getBuildingById(buildingId: string): Promise<BuildingRow> {
 
 export async function getBuildings(): Promise<BuildingRecord[]> {
   const supabase = getSupabase()
-  const { data, error } = await supabase
-    .from('buildings')
-    .select('id, name, created_at')
-    .order('name', { ascending: true })
+  const campusId = await getCampusIdForScope()
+
+  let query = supabase.from('buildings').select('id, name, created_at').order('name', { ascending: true })
+
+  if (campusId) {
+    query = query.eq('campus_id', campusId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error("SUPABASE ERROR:", error)
@@ -192,10 +203,14 @@ export async function createListing(input: CreateListingInput): Promise<ListingD
 
 export async function getListings(input: GetListingsInput): Promise<ListingsPage> {
   const supabase = getSupabase()
+  const campusId = await getCampusIdForScope()
+  const listingSelect = campusId
+    ? `${LISTING_FIELDS}, buildings!inner ( id, name, created_at, campus_id )`
+    : LISTING_SELECT_WITH_BUILDING
 
   let query = supabase
     .from('listings')
-    .select(LISTING_SELECT_WITH_BUILDING, {
+    .select(listingSelect, {
       count: 'exact'
     })
     .eq('status', 'active')
@@ -203,12 +218,23 @@ export async function getListings(input: GetListingsInput): Promise<ListingsPage
     .order('created_at', { ascending: false })
     .range(input.offset, input.offset + input.limit - 1)
 
+  if (campusId) {
+    query = query.eq('buildings.campus_id', campusId)
+  }
+
   if (input.buildingId) {
     query = query.eq('building_id', input.buildingId)
   }
 
   if (input.locationType) {
     query = query.eq('location_type', input.locationType)
+  }
+
+  if (input.searchQuery) {
+    const pattern = toIlikePattern(input.searchQuery)
+    query = query.or(
+      `description.ilike.${pattern},location_details.ilike.${pattern},other_location_type.ilike.${pattern}`
+    )
   }
 
   const { data, error, count } = await query

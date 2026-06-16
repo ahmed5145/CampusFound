@@ -25,8 +25,40 @@ export interface ListingCreateValidationResult {
 export interface ListingQueryValidationResult {
   buildingId: string | null
   locationType: LocationType | null
+  searchQuery: string | null
   limit: number
   offset: number
+}
+
+function normalizeSearchQuery(rawValue: string | null, fieldErrors: ValidationFieldErrors): string | null {
+  if (rawValue == null) {
+    return null
+  }
+
+  const trimmed = rawValue.trim()
+  if (trimmed.length === 0) {
+    return null
+  }
+
+  if (trimmed.length < 2) {
+    addFieldError(fieldErrors, 'q', 'Search must be at least 2 characters.')
+    return null
+  }
+
+  if (trimmed.length > 100) {
+    addFieldError(fieldErrors, 'q', 'Search must be 100 characters or fewer.')
+    return null
+  }
+
+  return trimmed
+}
+
+function escapeIlikePattern(value: string): string {
+  return value.replace(/[%_\\]/g, '\\$&')
+}
+
+export function toIlikePattern(value: string): string {
+  return `%${escapeIlikePattern(value)}%`
 }
 
 function createValidationError(fieldErrors: ValidationFieldErrors, message = 'Validation failed'): Error {
@@ -212,6 +244,7 @@ export function validateListingQuery(input: QueryInput): ListingQueryValidationR
 
   const buildingId = normalizeUuid(readQueryValue(input, 'building_id'), fieldErrors, 'building_id')
   const locationType = normalizeLocationType(readQueryValue(input, 'location_type'), fieldErrors, 'location_type')
+  const searchQuery = normalizeSearchQuery(readQueryValue(input, 'q'), fieldErrors)
 
   const rawLimit = readQueryValue(input, 'limit')
   let limit = 20
@@ -246,6 +279,7 @@ export function validateListingQuery(input: QueryInput): ListingQueryValidationR
   return {
     buildingId,
     locationType,
+    searchQuery,
     limit,
     offset
   }

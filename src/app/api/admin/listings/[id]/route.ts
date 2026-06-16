@@ -1,4 +1,5 @@
 import { updateListingStatus } from '../../../../../lib/db'
+import { requireAdminSession } from '../../../../../lib/admin-guard'
 import { validateListingIdParam } from '../../../../../lib/validators'
 
 type ListingStatusBody = {
@@ -13,6 +14,11 @@ async function readStatusFromRequest(request: Request): Promise<string | null> {
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = await requireAdminSession()
+  if (authError) {
+    return authError
+  }
+
   try {
     const { id } = await params
     const validatedId = validateListingIdParam(id)

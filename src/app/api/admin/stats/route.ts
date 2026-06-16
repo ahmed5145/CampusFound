@@ -1,5 +1,5 @@
-import { getRecentModerationEvents } from '../../../../lib/moderation-events'
 import { requireAdminSession } from '../../../../lib/admin-guard'
+import { getAdminStats } from '../../../../lib/admin-stats'
 
 export async function GET() {
   const authError = await requireAdminSession()
@@ -8,7 +8,7 @@ export async function GET() {
   }
 
   try {
-    const data = await getRecentModerationEvents(20)
+    const data = await getAdminStats()
     return Response.json({ data }, { status: 200 })
   } catch {
     return Response.json({ error: 'Request failed' }, { status: 500 })

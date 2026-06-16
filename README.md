@@ -56,7 +56,8 @@ npm run dev
 - [docs/DATA_MODEL.md](docs/DATA_MODEL.md)
 - [docs/USER_FLOW.md](docs/USER_FLOW.md)
 - [docs/V1_SCOPE_LOCK.md](docs/V1_SCOPE_LOCK.md)
-- [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md)
+- [docs/CAMPUS_ONBOARDING.md](docs/CAMPUS_ONBOARDING.md)
+- [docs/OPS_RUNBOOK.md](docs/OPS_RUNBOOK.md)
 - [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)
 
 ## Tech Stack

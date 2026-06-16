@@ -16,6 +16,9 @@ Server-only:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_STORAGE_BUCKET`
 - `ADMIN_SECRET`
+- `CRON_SECRET` (for scheduled listing expiry)
+- `NEXT_PUBLIC_CAMPUS_SLUG` (optional campus scoping)
+- `NEXT_PUBLIC_CAMPUS_NAME` (header branding)
 
 ## Database setup
 Run migrations in order:
@@ -25,6 +28,9 @@ Run migrations in order:
 - `db/migrations/004_create_reports.sql`
 - `db/migrations/005_add_reporter_ip_hash_to_reports.sql`
 - `db/migrations/006_create_moderation_events.sql`
+- `db/migrations/007_create_campuses.sql`
+- `db/migrations/008_create_admin_users.sql`
+- `db/migrations/009_add_listing_search_indexes.sql`
 
 Seed buildings:
 - `db/seeds/001_seed_buildings.sql`
@@ -50,8 +56,16 @@ Public:
 - Item detail page loads for the new listing.
 
 Admin:
-- Admin login works.
+- Admin login works (staff email or shared secret).
 - Admin can remove and restore a listing.
+- Admin stats load on `/admin`.
+- Cron expiry endpoint returns `{ expired_count }` when authorized.
+
+## Scheduled expiry
+
+- Route: `GET /api/cron/expire-listings`
+- Auth: `Authorization: Bearer $CRON_SECRET`
+- Vercel schedule: daily at 06:00 UTC (`vercel.json`)
 
 ## Rollback
 - **Fast rollback**: redeploy the previous known-good build.

@@ -9,6 +9,7 @@ import { fetchBuildings, type SelectedBuilding } from '../../lib/buildings'
 import { LOCATION_TYPES, LOCATION_TYPE_LABELS } from '../../config/constants'
 import PageView from '../../components/analytics/PageView'
 import { captureEvent } from '../../lib/analytics'
+import useDebounce from '../../hooks/useDebounce'
 
 export default function Page() {
   const router = useRouter()
@@ -40,7 +41,10 @@ export default function Page() {
   const searchParamsString = searchParams.toString()
   const selectedBuildingId = searchParams.get('building_id')
   const selectedLocationType = searchParams.get('location_type') ?? ''
-  const hasActiveFilters = Boolean(selectedBuildingId || selectedLocationType)
+  const selectedSearchQuery = searchParams.get('q') ?? ''
+  const [searchInput, setSearchInput] = useState(selectedSearchQuery)
+  const debouncedSearchInput = useDebounce(searchInput, 300)
+  const hasActiveFilters = Boolean(selectedBuildingId || selectedLocationType || selectedSearchQuery)
 
   const loadingCards = Array.from({ length: 4 }, (_, index) => index)
 
@@ -54,10 +58,10 @@ export default function Page() {
     return baseType
   }
 
-  const filterKey = `${selectedBuildingId ?? ''}|${selectedLocationType}`
+  const filterKey = `${selectedBuildingId ?? ''}|${selectedLocationType}|${selectedSearchQuery}`
   const filterKeyRef = useRef<string>(filterKey)
 
-  function updateUrl(nextBuildingId: string | null, nextLocationType: string) {
+  function updateUrl(nextBuildingId: string | null, nextLocationType: string, nextSearchQuery: string) {
     const params = new URLSearchParams(searchParamsString)
 
     if (nextBuildingId) {
@@ -72,9 +76,36 @@ export default function Page() {
       params.delete('location_type')
     }
 
+    if (nextSearchQuery.trim()) {
+      params.set('q', nextSearchQuery.trim())
+    } else {
+      params.delete('q')
+    }
+
     const query = params.toString()
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
   }
+
+  useEffect(() => {
+    setSearchInput(selectedSearchQuery)
+  }, [selectedSearchQuery])
+
+  useEffect(() => {
+    if (debouncedSearchInput.trim() === selectedSearchQuery.trim()) {
+      return
+    }
+
+    if (debouncedSearchInput.trim().length === 1) {
+      return
+    }
+
+    if (debouncedSearchInput.trim()) {
+      captureEvent('search_used', { query_length: debouncedSearchInput.trim().length })
+    }
+
+    updateUrl(selectedBuildingId, selectedLocationType, debouncedSearchInput)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchInput])
 
   useEffect(() => {
     let isActive = true
@@ -149,6 +180,7 @@ export default function Page() {
         params.set('offset', String(offset))
         if (selectedBuildingId) params.set('building_id', selectedBuildingId)
         if (selectedLocationType) params.set('location_type', selectedLocationType)
+        if (selectedSearchQuery) params.set('q', selectedSearchQuery)
 
         const url = `/api/items?${params.toString()}`
         const res = await fetch(url, { signal: controller.signal })
@@ -193,7 +225,7 @@ export default function Page() {
       // abort this request when effect cleans up
       controller.abort()
     }
-  }, [filterKey, selectedBuildingId, selectedLocationType, offset])
+  }, [filterKey, selectedBuildingId, selectedLocationType, selectedSearchQuery, offset])
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8">
@@ -201,11 +233,23 @@ export default function Page() {
         eventName="browse_viewed"
         properties={{
           building_id: selectedBuildingId,
-          location_type: selectedLocationType || null
+          location_type: selectedLocationType || null,
+          q: selectedSearchQuery || null
         }}
       />
       <div className="mb-6 flex flex-col gap-3">
         <h1 className="text-2xl font-semibold text-gray-900">Recent listings</h1>
+
+        <label className="flex flex-col text-sm">
+          <span className="mb-1 text-sm font-medium text-gray-700">Search</span>
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            placeholder="Search description or location details"
+            className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+          />
+        </label>
 
         <div className="flex gap-3">
           <label className="flex w-1/2 flex-col text-sm">
@@ -218,7 +262,7 @@ export default function Page() {
                 if (nextBuildingId) {
                   captureEvent('building_filter_used', { building_id: nextBuildingId })
                 }
-                updateUrl(nextBuildingId, selectedLocationType)
+                updateUrl(nextBuildingId, selectedLocationType, selectedSearchQuery)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
@@ -242,7 +286,7 @@ export default function Page() {
                 if (nextLocationType) {
                   captureEvent('location_type_filter_used', { location_type: nextLocationType })
                 }
-                updateUrl(selectedBuildingId, nextLocationType)
+                updateUrl(selectedBuildingId, nextLocationType, selectedSearchQuery)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
@@ -287,7 +331,8 @@ export default function Page() {
               <button
                 type="button"
                 onClick={() => {
-                  updateUrl(null, '')
+                  setSearchInput('')
+                  updateUrl(null, '', '')
                 }}
                 className="mt-4 inline-flex items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               >
@@ -308,7 +353,12 @@ export default function Page() {
                 <div className="w-full shrink-0 overflow-hidden rounded-lg bg-gray-100 sm:w-36">
                   {item.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.image_url} alt={`Listing ${item.id}`} className="h-48 w-full object-cover sm:h-32" />
+                    <img
+                      src={item.image_thumbnail_url || item.image_url}
+                      alt={`Listing ${item.id}`}
+                      className="h-48 w-full object-cover sm:h-32"
+                      loading="lazy"
+                    />
                   ) : (
                     <div className="h-48 w-full bg-gray-200 sm:h-32" />
                   )}

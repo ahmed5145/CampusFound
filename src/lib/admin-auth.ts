@@ -5,6 +5,9 @@ type AdminSessionPayload = {
   v: 1
   iat: number
   exp: number
+  email?: string
+  role?: 'moderator' | 'admin'
+  method?: 'secret' | 'email'
 }
 
 function encodeText(value: string): Uint8Array {
@@ -59,18 +62,28 @@ async function importHmacKey(secret: string): Promise<CryptoKey> {
   )
 }
 
-function createSessionPayload(now: number = Date.now()): AdminSessionPayload {
+function createSessionPayload(
+  now: number = Date.now(),
+  identity?: Pick<AdminSessionPayload, 'email' | 'role' | 'method'>
+): AdminSessionPayload {
   const issuedAt = Math.floor(now / 1000)
 
   return {
     v: 1,
     iat: issuedAt,
-    exp: issuedAt + ADMIN_SESSION_TTL_SECONDS
+    exp: issuedAt + ADMIN_SESSION_TTL_SECONDS,
+    ...(identity?.email ? { email: identity.email } : {}),
+    ...(identity?.role ? { role: identity.role } : {}),
+    ...(identity?.method ? { method: identity.method } : {})
   }
 }
 
-export async function createAdminSessionCookieValue(secret: string, now: number = Date.now()): Promise<string> {
-  const payload = createSessionPayload(now)
+export async function createAdminSessionCookieValue(
+  secret: string,
+  identity?: Pick<AdminSessionPayload, 'email' | 'role' | 'method'>,
+  now: number = Date.now()
+): Promise<string> {
+  const payload = createSessionPayload(now, identity)
   const payloadBytes = encodeText(JSON.stringify(payload))
   const key = await importHmacKey(secret)
   const signature = new Uint8Array(

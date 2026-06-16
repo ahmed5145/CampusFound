@@ -29,7 +29,7 @@ export default async function Page() {
             Sign in to moderate listings
           </h1>
           <p className="mx-auto max-w-md text-sm leading-6 text-gray-600 sm:text-base">
-            Enter the shared admin secret to view recent listings and manage active or removed items.
+            Sign in with your staff email or the shared admin secret to moderate listings and reports.
           </p>
         </div>
 

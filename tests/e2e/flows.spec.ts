@@ -80,6 +80,7 @@ async function adminLogin(page: Page) {
   test.skip(!adminSecret, 'ADMIN_SECRET not set for e2e run')
 
   await page.goto('/admin/login')
+  await page.getByRole('button', { name: /shared secret/i }).click()
   await page.getByLabel(/admin secret/i).fill(adminSecret!)
   await page.getByRole('button', { name: /sign in/i }).click()
   await expect(page).toHaveURL(/\/admin$/)

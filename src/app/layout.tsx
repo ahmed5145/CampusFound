@@ -4,7 +4,10 @@ import Container from "../components/ui/Container";
 import Footer from "../components/ui/Footer";
 import Header from "../components/ui/Header";
 import AnalyticsInit from "../components/analytics/AnalyticsInit";
+import ErrorReporter from "../components/ErrorReporter";
 import "./globals.css";
+
+const campusName = process.env.NEXT_PUBLIC_CAMPUS_NAME?.trim() || "Campus Found";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Campus Found",
-  description: "Minimal found-item listings MVP",
+  title: campusName,
+  description: "Found-item listings for your campus community",
 };
 
 export default function RootLayout({
@@ -34,9 +37,11 @@ export default function RootLayout({
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-white text-gray-900">
         <AnalyticsInit />
         <Header />
-        <Container>
-          <div className="py-6">{children}</div>
-        </Container>
+        <ErrorReporter>
+          <Container>
+            <div className="py-6">{children}</div>
+          </Container>
+        </ErrorReporter>
         <Footer />
       </body>
     </html>

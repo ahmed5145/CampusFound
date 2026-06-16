@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+const campusName = process.env.NEXT_PUBLIC_CAMPUS_NAME?.trim() || 'Campus Found'
+
 const navItems = [
   { href: '/', label: 'Home' },
   { href: '/browse', label: 'Browse' },
@@ -16,7 +18,7 @@ export default function Header() {
     <header className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="text-sm font-semibold tracking-tight text-gray-900">
-          Campus Found
+          {campusName}
         </Link>
 
         <nav aria-label="Primary" className="flex items-center gap-2 sm:gap-3">

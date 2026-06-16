@@ -1,4 +1,5 @@
 import { updateReportStatus } from '../../../../../lib/reports'
+import { requireAdminSession } from '../../../../../lib/admin-guard'
 import type { ReportStatus } from '../../../../../types/db-schema'
 import { validateReportIdParam } from '../../../../../lib/validators'
 
@@ -9,6 +10,11 @@ type ReportStatusBody = {
 const ALLOWED_STATUSES = new Set<ReportStatus>(['open', 'resolved', 'dismissed'])
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = await requireAdminSession()
+  if (authError) {
+    return authError
+  }
+
   try {
     const { id } = await params
     const validatedId = validateReportIdParam(id)

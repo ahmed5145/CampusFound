@@ -24,6 +24,7 @@ export async function GET(request: Request) {
     const data = await getListings({
       buildingId: query.buildingId,
       locationType: query.locationType,
+      searchQuery: query.searchQuery,
       limit: query.limit,
       offset: query.offset
     })

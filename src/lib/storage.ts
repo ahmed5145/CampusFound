@@ -119,3 +119,23 @@ export async function getListingImageDisplayUrl(input: {
 
   return null
 }
+
+export function getListingImageThumbnailUrl(imageUrl: string | null, width = 320): string | null {
+  if (!imageUrl) {
+    return null
+  }
+
+  const objectPublicMatch = imageUrl.match(/^(https?:\/\/[^/]+)\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/)
+  if (!objectPublicMatch) {
+    return imageUrl
+  }
+
+  const [, origin, bucket, objectPath] = objectPublicMatch
+  const params = new URLSearchParams({
+    width: String(width),
+    height: String(width),
+    resize: 'cover'
+  })
+
+  return `${origin}/storage/v1/render/image/public/${bucket}/${objectPath}?${params.toString()}`
+}

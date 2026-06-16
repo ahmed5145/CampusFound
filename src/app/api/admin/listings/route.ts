@@ -1,4 +1,5 @@
 import { getAdminListings } from '../../../../lib/db'
+import { requireAdminSession } from '../../../../lib/admin-guard'
 
 function parseInteger(value: string | null, fallback: number, minimum: number, maximum: number): number {
   if (value === null || value === '') {
@@ -14,6 +15,11 @@ function parseInteger(value: string | null, fallback: number, minimum: number, m
 }
 
 export async function GET(request: Request) {
+  const authError = await requireAdminSession()
+  if (authError) {
+    return authError
+  }
+
   try {
     const url = new URL(request.url)
     const limit = parseInteger(url.searchParams.get('limit'), 50, 1, 100)
