@@ -58,7 +58,7 @@ test('upload -> item detail -> report once', async ({ page }) => {
 
   // Reload should still show already reported state
   await page.reload()
-  await expect(page.getByText(/report submitted|already reported/i)).toBeVisible()
+  await expect(page.getByText('Report submitted', { exact: true })).toBeVisible()
 
   // Sanity: listing id returned
   expect(listingId).toMatch(/[0-9a-f-]{36}/i)
