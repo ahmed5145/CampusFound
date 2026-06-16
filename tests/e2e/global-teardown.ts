@@ -37,6 +37,38 @@ function toInFilter(values: string[]): string {
   return `in.(${values.join(',')})`
 }
 
+async function deleteStorageObjects(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  bucket: string,
+  paths: string[]
+): Promise<void> {
+  const storageResponse = await serviceFetch(supabaseUrl, serviceRoleKey, `/storage/v1/object/${bucket}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ prefixes: paths })
+  })
+
+  if (storageResponse.ok) {
+    return
+  }
+
+  await Promise.all(
+    paths.map(async (objectPath) => {
+      const encodedPath = objectPath
+        .split('/')
+        .map((segment) => encodeURIComponent(segment))
+        .join('/')
+
+      await serviceFetch(supabaseUrl, serviceRoleKey, `/storage/v1/object/${bucket}/${encodedPath}`, {
+        method: 'DELETE'
+      })
+    })
+  )
+}
+
 export default async function globalTeardown() {
   const config = getServiceConfig()
   if (!config) {
@@ -74,21 +106,19 @@ export default async function globalTeardown() {
     headers: { Prefer: 'return=minimal' }
   })
 
-  const storagePaths = listings
-    .map((listing) => listing.image_path?.trim() || `${listing.id}/image.jpg`)
-    .filter((path) => path.length > 0)
+  const storagePaths = Array.from(
+    new Set(
+      listings
+        .map((listing) => listing.image_path?.trim() || `${listing.id}/image.jpg`)
+        .filter((path) => path.length > 0)
+    )
+  )
 
   if (storagePaths.length > 0) {
-    const storageResponse = await serviceFetch(supabaseUrl, serviceRoleKey, `/storage/v1/object/${bucket}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(storagePaths)
-    })
-
-    if (!storageResponse.ok) {
-      throw new Error(`E2E cleanup: could not delete storage objects (${storageResponse.status})`)
+    try {
+      await deleteStorageObjects(supabaseUrl, serviceRoleKey, bucket, storagePaths)
+    } catch {
+      console.warn('E2E cleanup: storage delete failed; continuing with DB cleanup')
     }
   }
 
