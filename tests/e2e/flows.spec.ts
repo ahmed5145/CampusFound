@@ -19,14 +19,16 @@ async function uploadListing(page: Page) {
   })
 
   // Pick building via the building picker button
-  await page.getByRole('button', { name: /choose a building|select/i }).click()
-  // Building picker should show a list; pick first option button if present.
-  // (BuildingPicker implementation may render buttons/links; use a broad strategy.)
-  const firstBuilding = page
-    .locator('button', { hasText: /.+/ })
-    .filter({ hasNotText: /cancel|close/i })
-    .nth(0)
-  await firstBuilding.click()
+  await page.locator('button[aria-haspopup="dialog"]').click()
+
+  // BuildingPicker: click the first building button in the picker list.
+  await page.getByRole('heading', { name: /select a building/i }).waitFor()
+  const pickerRoot = page.locator('div.fixed.inset-0.z-50.bg-white')
+  const buildingButtons = pickerRoot.locator('div.space-y-2 > button')
+  await buildingButtons.first().click()
+
+  // Picker should close after selection
+  await expect(pickerRoot).toHaveCount(0)
 
   // Location type select
   await page.getByRole('combobox', { name: /location type/i }).selectOption('lost_and_found')
