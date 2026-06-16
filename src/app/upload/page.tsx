@@ -157,12 +157,16 @@ export default function Page() {
       return
     }
 
-    const formData = new FormData()
-    formData.append('image', draft.selectedImage)
-    formData.append('building_id', draft.selectedBuilding.id)
-    formData.append('location_type', draft.locationType)
+    const selectedImage = draft.selectedImage
+    const selectedBuilding = draft.selectedBuilding
+    const locationType = draft.locationType
 
-    if (draft.locationType === 'other' && draft.otherLocationType.trim().length > 0) {
+    const formData = new FormData()
+    formData.append('image', selectedImage)
+    formData.append('building_id', selectedBuilding.id)
+    formData.append('location_type', locationType)
+
+    if (locationType === 'other' && draft.otherLocationType.trim().length > 0) {
       formData.append('other_location_type', draft.otherLocationType)
     }
 
@@ -192,8 +196,8 @@ export default function Page() {
           if (responseBody.data?.id) {
             captureEvent('upload_completed', {
               listing_id: responseBody.data.id,
-              building_id: draft.selectedBuilding.id,
-              location_type: draft.locationType
+              building_id: selectedBuilding.id,
+              location_type: locationType
             })
             router.push(`/items/${responseBody.data.id}`)
             return
