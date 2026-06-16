@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import type { ListingPublic, ListingsPage } from '../../lib/db'
@@ -23,8 +23,6 @@ export default function Page() {
   const [buildings, setBuildings] = useState<SelectedBuilding[]>([])
   const [isBuildingsLoading, setIsBuildingsLoading] = useState(true)
   const [buildingsError, setBuildingsError] = useState<string | null>(null)
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(() => searchParams.get('building_id'))
-  const [selectedLocationType, setSelectedLocationType] = useState<string>(() => searchParams.get('location_type') ?? '')
 
   // pagination params (offset kept for future pagination)
   const [offset, setOffset] = useState(0)
@@ -39,6 +37,8 @@ export default function Page() {
   const buildingsRequestIdRef = useRef(0)
 
   const searchParamsString = searchParams.toString()
+  const selectedBuildingId = searchParams.get('building_id')
+  const selectedLocationType = searchParams.get('location_type') ?? ''
   const hasActiveFilters = Boolean(selectedBuildingId || selectedLocationType)
 
   const loadingCards = Array.from({ length: 4 }, (_, index) => index)
@@ -53,18 +53,13 @@ export default function Page() {
     return baseType
   }
 
-  const currentFilterState = useMemo(
-    () => ({
-      buildingId: searchParams.get('building_id'),
-      locationType: searchParams.get('location_type') ?? ''
-    }),
-    [searchParamsString]
-  )
-
   useEffect(() => {
-    setSelectedBuildingId(currentFilterState.buildingId)
-    setSelectedLocationType(currentFilterState.locationType)
-  }, [currentFilterState.buildingId, currentFilterState.locationType])
+    // Reset pagination when URL filters change.
+    setListings([])
+    setOffset(0)
+    paginationInFlightRef.current = false
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParamsString])
 
   function updateUrl(nextBuildingId: string | null, nextLocationType: string) {
     const params = new URLSearchParams(searchParamsString)
@@ -127,18 +122,19 @@ export default function Page() {
     listingsAbortControllerRef.current = controller
 
     const loadingMore = offset > 0
-    // mark pagination in-flight if this is a pagination request
+
+    setError(null)
     if (loadingMore) {
-      paginationInFlightRef.current = true
       setIsLoadingMore(true)
     } else {
       setIsLoading(true)
     }
 
-    setError(null)
-
     async function load() {
       try {
+        if (loadingMore) {
+          paginationInFlightRef.current = true
+        }
         const params = new URLSearchParams()
         params.set('limit', String(limit))
         params.set('offset', String(offset))
@@ -164,9 +160,9 @@ export default function Page() {
         }
 
         setHasMore(Boolean(payload.pageInfo?.hasMore))
-      } catch (err: any) {
+      } catch (err: unknown) {
         // if aborted, silently ignore
-        if (err?.name === 'AbortError') return
+        if (err instanceof Error && err.name === 'AbortError') return
         // ignore if a newer request started
         if (requestId !== listingsRequestIdRef.current) return
         setError('Could not load listings.')
@@ -188,7 +184,6 @@ export default function Page() {
       // abort this request when effect cleans up
       controller.abort()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBuildingId, selectedLocationType, offset])
 
   return (
@@ -211,11 +206,6 @@ export default function Page() {
               disabled={isBuildingsLoading}
               onChange={(e) => {
                 const nextBuildingId = e.target.value || null
-                setSelectedBuildingId(nextBuildingId)
-                setListings([])
-                setOffset(0)
-                // clear any pending pagination guard when filters change
-                paginationInFlightRef.current = false
                 updateUrl(nextBuildingId, selectedLocationType)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
@@ -237,11 +227,6 @@ export default function Page() {
               value={selectedLocationType}
               onChange={(e) => {
                 const nextLocationType = e.target.value
-                setSelectedLocationType(nextLocationType)
-                setListings([])
-                setOffset(0)
-                // clear any pending pagination guard when filters change
-                paginationInFlightRef.current = false
                 updateUrl(selectedBuildingId, nextLocationType)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
@@ -287,11 +272,6 @@ export default function Page() {
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedBuildingId(null)
-                  setSelectedLocationType('')
-                  setListings([])
-                  setOffset(0)
-                  paginationInFlightRef.current = false
                   updateUrl(null, '')
                 }}
                 className="mt-4 inline-flex items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"

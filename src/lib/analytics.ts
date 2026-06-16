@@ -13,7 +13,7 @@ export function initAnalytics(key?: string) {
   initialized = true
 }
 
-export function captureEvent(eventName: string, properties?: Record<string, any>) {
+export function captureEvent(eventName: string, properties?: Record<string, unknown>) {
   if (!initialized) initAnalytics()
   try {
     posthog.capture(eventName, properties)

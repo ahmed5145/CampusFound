@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 
 import BuildingPicker from '../../components/ui/BuildingPicker'
 import ImageUpload from '../../components/ui/ImageUpload'
@@ -33,15 +33,9 @@ export default function Page() {
 
   useEffect(() => {
     captureEvent('upload_started')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    setValidation((current) => ({
-      ...current,
-      fieldErrors: validateDraft(draft)
-    }))
-  }, [draft])
+  const derivedFieldErrors = useMemo(() => validateDraft(draft), [draft])
 
   useEffect(() => {
     let isActive = true
@@ -106,11 +100,6 @@ export default function Page() {
     // clear otherLocationType when switching away from 'other'
     if (value !== 'other') {
       updateDraft({ locationType: value, otherLocationType: '' })
-      // also clear any validation errors for otherLocationType by revalidating
-      setValidation((current) => ({
-        ...current,
-        fieldErrors: validateDraft({ ...draft, locationType: value, otherLocationType: '' })
-      }))
     } else {
       updateDraft({ locationType: value })
     }
@@ -152,13 +141,12 @@ export default function Page() {
   }
 
   function handleSubmit() {
-    const fieldErrors = validateDraft(draft)
-    const hasErrors = Object.values(fieldErrors).some((errors) => errors.length > 0)
+    const hasErrors = Object.values(derivedFieldErrors).some((errors) => errors.length > 0)
 
     setValidation((current) => ({
       ...current,
       submitAttempted: true,
-      fieldErrors
+      fieldErrors: derivedFieldErrors
     }))
 
     if (hasErrors) {
@@ -278,7 +266,7 @@ export default function Page() {
       <ImageUpload
         file={draft.selectedImage}
         onFileChange={handleImageChange}
-        errors={showImageErrors ? validation.fieldErrors.selectedImage : []}
+        errors={showImageErrors ? derivedFieldErrors.selectedImage : []}
       />
 
       <UploadForm
@@ -289,7 +277,10 @@ export default function Page() {
         onOtherLocationTypeChange={handleOtherLocationTypeChange}
         onLocationDetailsChange={handleLocationDetailsChange}
         onDescriptionChange={handleDescriptionChange}
-        validation={validation}
+        validation={{
+          ...validation,
+          fieldErrors: derivedFieldErrors
+        }}
         showBuildingErrors={showBuildingErrors}
         showLocationTypeErrors={showLocationTypeErrors}
         showOtherLocationErrors={validation.touched.otherLocationType || validation.submitAttempted}

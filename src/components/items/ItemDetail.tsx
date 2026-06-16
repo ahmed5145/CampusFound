@@ -69,7 +69,7 @@ export default function ItemDetail({ id }: { id: string }) {
         const payload = await res.json()
         if (!isActive) return
         setItem(payload.data ?? null)
-      } catch (err) {
+      } catch {
         if (!isActive) return
         setError('Could not load listing.')
       } finally {
