@@ -36,6 +36,7 @@ npm run dev
 6. (Optional) Run end-to-end tests (Playwright):
 
 ```bash
+npx playwright install
 npm install
 npm run test:e2e
 ```
