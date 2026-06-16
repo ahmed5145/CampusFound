@@ -43,6 +43,52 @@ async function uploadListing(page: Page) {
   return page.url().split('/items/')[1]
 }
 
+function moderationSection(page: Page) {
+  return page.locator('section').filter({
+    has: page.getByRole('heading', { name: /moderation activity/i })
+  })
+}
+
+function moderationEventForListing(page: Page, listingId: string, actionPattern: RegExp) {
+  return moderationSection(page)
+    .locator('article')
+    .filter({ has: page.locator(`a[href="/items/${listingId}"]`) })
+    .filter({ hasText: actionPattern })
+    .first()
+}
+
+async function waitForModerationActivityRefresh(page: Page) {
+  await page.waitForResponse(
+    (response) => response.url().includes('/api/admin/moderation-events') && response.ok()
+  )
+}
+
+function reportCardForListing(page: Page, listingId: string) {
+  return page
+    .locator('section')
+    .filter({ has: page.getByRole('heading', { name: /^Reports$/i }) })
+    .locator('article')
+    .filter({ has: page.locator(`a[href="/items/${listingId}"]`) })
+}
+
+function listingQueueCard(page: Page, listingId: string) {
+  return page.locator('article').filter({ has: page.locator(`img[alt="Listing ${listingId}"]`) })
+}
+
+async function adminLogin(page: Page) {
+  const adminSecret = process.env.ADMIN_SECRET
+  test.skip(!adminSecret, 'ADMIN_SECRET not set for e2e run')
+
+  await page.goto('/admin/login')
+  await page.getByLabel(/admin secret/i).fill(adminSecret!)
+  await page.getByRole('button', { name: /sign in/i }).click()
+  await expect(page).toHaveURL(/\/admin$/)
+  await expect(page.getByRole('heading', { name: /^Reports$/i })).toBeVisible()
+  await page.waitForResponse(
+    (response) => response.url().includes('/api/admin/moderation-events') && response.ok()
+  )
+}
+
 test('upload -> item detail -> report once', async ({ page }) => {
   const listingId = await uploadListing(page)
 
@@ -73,22 +119,10 @@ test('admin can resolve report and see moderation activity', async ({ page }) =>
   await page.getByRole('button', { name: /submit report/i }).click()
   await expect(page.getByText('Report submitted', { exact: true })).toBeVisible()
 
-  // Admin login
-  const adminSecret = process.env.ADMIN_SECRET
-  test.skip(!adminSecret, 'ADMIN_SECRET not set for e2e run')
+  await adminLogin(page)
 
-  await page.goto('/admin/login')
-  await page.getByLabel(/admin secret/i).fill(adminSecret!)
-  await page.getByRole('button', { name: /sign in/i }).click()
-
-  await expect(page).toHaveURL(/\/admin$/)
-
-  // Reports panel should include the report; resolve it.
-  await expect(page.getByRole('heading', { name: /^Reports$/i })).toBeVisible()
-
-  const moderationSection = page.locator('section').filter({
-    has: page.getByRole('heading', { name: /moderation activity/i })
-  })
+  const reportCard = reportCardForListing(page, listingId)
+  await expect(reportCard).toBeVisible()
 
   await Promise.all([
     page.waitForResponse(
@@ -97,16 +131,60 @@ test('admin can resolve report and see moderation activity', async ({ page }) =>
         response.request().method() === 'PATCH' &&
         response.ok()
     ),
-    page.getByRole('button', { name: /^resolve$/i }).first().click()
+    reportCard.getByRole('button', { name: /^resolve$/i }).click()
   ])
 
-  // Moderation activity should include "Report resolved"
+  await waitForModerationActivityRefresh(page)
   await expect(page.getByRole('heading', { name: /moderation activity/i })).toBeVisible()
-  await expect(moderationSection.getByText(/report resolved/i)).toBeVisible()
+  await expect(moderationEventForListing(page, listingId, /report resolved/i)).toBeVisible()
 
-  // Verify we can still view the listing
   await page.goto(`/items/${listingId}`)
   await expect(page).toHaveURL(new RegExp(`/items/${listingId}$`))
+})
+
+test('admin can remove and restore listing with moderation activity', async ({ page }) => {
+  const listingId = await uploadListing(page)
+
+  await adminLogin(page)
+
+  const listingCard = listingQueueCard(page, listingId)
+  await expect(listingCard).toBeVisible()
+
+  await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.url().includes(`/api/admin/listings/${listingId}`) &&
+        response.request().method() === 'PATCH' &&
+        response.ok()
+    ),
+    listingCard.getByRole('button', { name: /^remove$/i }).click()
+  ])
+
+  await waitForModerationActivityRefresh(page)
+  await expect(moderationEventForListing(page, listingId, /listing removed/i)).toBeVisible()
+
+  await page.goto(`/items/${listingId}`)
+  await expect(page.getByText(/listing not found/i)).toBeVisible()
+
+  await page.goto('/admin')
+  const removedListingCard = listingQueueCard(page, listingId)
+  await expect(removedListingCard).toBeVisible()
+
+  await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.url().includes(`/api/admin/listings/${listingId}`) &&
+        response.request().method() === 'PATCH' &&
+        response.ok()
+    ),
+    removedListingCard.getByRole('button', { name: /^restore$/i }).click()
+  ])
+
+  await waitForModerationActivityRefresh(page)
+  await expect(moderationEventForListing(page, listingId, /listing restored/i)).toBeVisible()
+
+  await page.goto(`/items/${listingId}`)
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 })
 
 test('browse filters update URL and show matching listings', async ({ page }) => {

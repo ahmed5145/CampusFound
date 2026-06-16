@@ -239,6 +239,9 @@ export default function Page() {
               value={selectedLocationType}
               onChange={(e) => {
                 const nextLocationType = e.target.value
+                if (nextLocationType) {
+                  captureEvent('location_type_filter_used', { location_type: nextLocationType })
+                }
                 updateUrl(selectedBuildingId, nextLocationType)
               }}
               className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
