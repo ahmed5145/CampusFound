@@ -201,7 +201,7 @@ export default function AdminReportsPanel({ onModerationChange }: { onModeration
                     type="button"
                     onClick={() => void updateReportStatus(report.id, 'resolved')}
                     disabled={isUpdating || report.status === 'resolved'}
-                    className="inline-flex h-10 items-center justify-center rounded-full bg-gray-900 px-4 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-brand-navy px-4 text-sm font-medium text-white transition-colors hover:bg-brand-navy-hover disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Resolve
                   </button>

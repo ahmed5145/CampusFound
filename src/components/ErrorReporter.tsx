@@ -37,7 +37,7 @@ export default class ErrorReporter extends Component<Props, State> {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-6 inline-flex items-center rounded-full bg-gray-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+            className="mt-6 inline-flex items-center rounded-full bg-brand-navy px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-navy-hover"
           >
             Refresh page
           </button>

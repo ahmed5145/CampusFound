@@ -74,7 +74,7 @@ export default function ImageUpload({ file, onFileChange, errors }: ImageUploadP
       </div>
 
       <div className="mt-4 space-y-4">
-        <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-900 focus-within:ring-offset-2 focus-within:ring-offset-white">
+        <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-brand-navy px-4 py-2 text-sm font-medium text-white focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-navy focus-within:ring-offset-2 focus-within:ring-offset-white">
           Choose photo
           <input
             ref={inputRef}

@@ -22,6 +22,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: campusName,
   description: "Found-item listings for your campus community",
+  icons: {
+    icon: [{ url: "/brand/logo-mark.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/brand/logo-mark.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
@@ -34,7 +38,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body suppressHydrationWarning className="min-h-full flex flex-col bg-white text-gray-900">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-brand-cream text-brand-navy">
         <AnalyticsInit />
         <Header />
         <ErrorReporter>

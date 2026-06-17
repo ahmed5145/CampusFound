@@ -142,7 +142,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-gray-900 px-5 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-brand-navy px-5 text-sm font-medium text-white transition-colors hover:bg-brand-navy-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? 'Signing in…' : 'Sign in'}
       </button>

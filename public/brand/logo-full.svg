@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 64" fill="none" role="img" aria-label="CampusFound">
+  <defs>
+    <filter id="mark-shadow" x="-15%" y="-10%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="0.18"/>
+    </filter>
+    <filter id="dot-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <g transform="translate(0,0) scale(1)">
+    <rect width="64" height="64" rx="14" fill="#1B2A4A" filter="url(#mark-shadow)"/>
+    <circle cx="32" cy="32" r="27" stroke="#C9A227" stroke-opacity="0.22" stroke-width="0.75"/>
+    <circle cx="22" cy="18" r="5" fill="#E8CE78" fill-opacity="0.35"/>
+    <circle cx="27" cy="25" r="8.5" stroke="#C9A227" stroke-width="2.5"/>
+    <path d="M33 31L40 38" stroke="#C9A227" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M32 39C32 39 26 48 26 52C26 55 28.8 57 32 57C35.2 57 38 55 38 52C38 48 32 39 32 39Z" fill="#F5F0E6"/>
+    <circle cx="27" cy="25" r="3.5" fill="#C9A227" filter="url(#dot-glow)"/>
+  </g>
+  <text x="80" y="43" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="34" font-weight="700" letter-spacing="-0.5" fill="#1B2A4A">Campus</text>
+  <text x="208" y="43" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="34" font-weight="700" letter-spacing="-0.5" fill="#C9A227">Found</text>
+</svg>

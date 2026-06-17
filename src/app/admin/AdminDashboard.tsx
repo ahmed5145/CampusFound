@@ -255,7 +255,7 @@ export default function AdminDashboard() {
           type="button"
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
         >
           {isLoggingOut ? (
             <>
@@ -340,7 +340,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => router.refresh()}
-              className="mt-5 inline-flex items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              className="mt-5 inline-flex items-center rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               Refresh queue
             </button>
@@ -395,7 +395,7 @@ export default function AdminDashboard() {
                     <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <a
                         href={`/items/${item.id}`}
-                        className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       >
                         View public item
                       </a>
@@ -405,7 +405,7 @@ export default function AdminDashboard() {
                           type="button"
                           onClick={() => void updateListingStatus(item.id, 'removed')}
                           disabled={isUpdating || item.status === 'removed'}
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         >
                           {isUpdating && item.status === 'active' ? (
                             <>
@@ -420,7 +420,7 @@ export default function AdminDashboard() {
                           type="button"
                           onClick={() => void updateListingStatus(item.id, 'active')}
                           disabled={isUpdating || item.status === 'active'}
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-gray-900 px-4 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-brand-navy px-4 text-sm font-medium text-white transition-colors hover:bg-brand-navy-hover disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         >
                           {isUpdating && item.status === 'removed' ? (
                             <>

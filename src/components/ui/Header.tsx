@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Logo from './Logo'
 
 const campusName = process.env.NEXT_PUBLIC_CAMPUS_NAME?.trim() || 'Campus Found'
+const showCampusSubtitle = campusName.toLowerCase() !== 'campus found'
 
 const navItems = [
   { href: '/', label: 'Home' },
@@ -15,10 +17,16 @@ export default function Header() {
   const pathname = usePathname()
 
   return (
-    <header className="border-b border-gray-200 bg-white">
+    <header className="border-b border-brand-cream-dark bg-white">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <Link href="/" className="text-sm font-semibold tracking-tight text-gray-900">
-          {campusName}
+        <Link href="/" className="flex items-center gap-2.5">
+          <Logo variant="mark" className="h-8 w-8 shrink-0" priority />
+          <span className="leading-tight">
+            <span className="block text-sm font-semibold tracking-tight text-brand-navy">CampusFound</span>
+            {showCampusSubtitle ? (
+              <span className="block text-xs font-medium text-brand-muted">{campusName}</span>
+            ) : null}
+          </span>
         </Link>
 
         <nav aria-label="Primary" className="flex items-center gap-2 sm:gap-3">
@@ -32,7 +40,7 @@ export default function Header() {
                 aria-current={isActive ? 'page' : undefined}
                 className={[
                   'rounded-full px-3 py-2 text-sm font-medium transition-colors',
-                  isActive ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  isActive ? 'bg-brand-navy text-white' : 'text-brand-muted hover:bg-brand-cream-dark hover:text-brand-navy'
                 ].join(' ')}
               >
                 {item.label}

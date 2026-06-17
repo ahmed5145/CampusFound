@@ -189,7 +189,7 @@ export default function ReportListingForm({ listingId }: ReportListingFormProps)
             setSuccessMessage(null)
             setErrorMessage(null)
           }}
-          className="inline-flex h-10 items-center justify-center rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
+          className="inline-flex h-10 items-center justify-center rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
         >
           {isOpen ? 'Cancel report' : 'Report listing'}
         </button>
@@ -202,7 +202,7 @@ export default function ReportListingForm({ listingId }: ReportListingFormProps)
             <select
               value={reason}
               onChange={(event) => setReason(event.target.value as ReportReason | '')}
-              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
+              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
               required
             >
               <option value="">Select a reason</option>
@@ -224,7 +224,7 @@ export default function ReportListingForm({ listingId }: ReportListingFormProps)
               rows={3}
               maxLength={500}
               placeholder="Share any context that helps moderators review this listing."
-              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
+              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
             />
           </label>
 
@@ -237,7 +237,7 @@ export default function ReportListingForm({ listingId }: ReportListingFormProps)
           <button
             type="submit"
             disabled={isSubmitting || !reason}
-            className="inline-flex h-10 items-center justify-center rounded-full bg-gray-900 px-4 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
+            className="inline-flex h-10 items-center justify-center rounded-full bg-brand-navy px-4 text-sm font-medium text-white transition-colors hover:bg-brand-navy-hover disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
           >
             {isSubmitting ? 'Submitting…' : 'Submit report'}
           </button>
