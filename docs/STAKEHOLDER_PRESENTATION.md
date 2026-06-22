@@ -15,7 +15,7 @@
 
 Subtitle: A centralized found-item board connecting students, staff, and campus departments.
 
-**Visual:** Luther + CampusFound logo/wordmark; clean campus photo (optional).
+**Visual:** CampusFound logo (`public/brand/logo-full.svg`) centered or top-left; optional Luther campus photo (Communications-approved only). For social posts, use `public/brand/social-announcement.svg` and replace the URL placeholder.
 
 **Speaker notes:**
 - Brief introduction: who you are and your connection to Luther.
@@ -237,7 +237,7 @@ Returns to listed location / contacts office → Item reunited
 - Which department should be the **primary moderation** contact?
 - What **concerns** should we address before any public promotion?
 
-**Visual:** “Discussion” slide — logo only, minimal text.
+**Visual:** “Discussion” slide — `public/brand/logo-mark.svg` centered, minimal text.
 
 **Speaker notes:**
 - **Stop presenting.** Put laptop away if helpful.
