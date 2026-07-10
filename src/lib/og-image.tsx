@@ -1,11 +1,11 @@
 import { ImageResponse } from 'next/og'
-import { getConfiguredCampusName } from '../lib/campus'
+import { getConfiguredCampusName } from './campus'
 
-export const alt = 'CampusFound — modernizing lost and found on campus'
-export const size = { width: 1200, height: 630 }
-export const contentType = 'image/png'
+export const ogImageAlt = 'CampusFound — modernizing lost and found on campus'
+export const ogImageSize = { width: 1200, height: 630 }
+export const ogImagePath = '/brand/og.png'
 
-export default function Image() {
+export function createOgImageResponse(): ImageResponse {
   const campusName = getConfiguredCampusName()
 
   return new ImageResponse(
@@ -107,7 +107,7 @@ export default function Image() {
                 fontWeight: 500,
               }}
             >
-              Modernizing lost &amp; found on campus
+              Modernizing lost & found on campus
             </div>
             <div
               style={{
@@ -122,6 +122,6 @@ export default function Image() {
         </div>
       </div>
     ),
-    { ...size },
+    { ...ogImageSize },
   )
 }

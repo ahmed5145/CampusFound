@@ -5,6 +5,7 @@ import Footer from "../components/ui/Footer";
 import Header from "../components/ui/Header";
 import AnalyticsInit from "../components/analytics/AnalyticsInit";
 import ErrorReporter from "../components/ErrorReporter";
+import { ogImageAlt, ogImagePath, ogImageSize } from "../lib/og-image";
 import { getMetadataBase, getSiteDescription } from "../lib/site";
 import "./globals.css";
 
@@ -32,11 +33,21 @@ export const metadata: Metadata = {
     siteName: campusName,
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: ogImagePath,
+        width: ogImageSize.width,
+        height: ogImageSize.height,
+        alt: ogImageAlt,
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: campusName,
     description: siteDescription,
+    images: [ogImagePath],
   },
   icons: {
     icon: [{ url: "/brand/logo-mark.svg", type: "image/svg+xml" }],
