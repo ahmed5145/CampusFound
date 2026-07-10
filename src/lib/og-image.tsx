@@ -2,11 +2,40 @@ import { ImageResponse } from 'next/og'
 import { getConfiguredCampusName } from './campus'
 
 export const ogImageAlt = 'CampusFound — modernizing lost and found on campus'
-export const ogImageSize = { width: 1200, height: 630 }
+export const ogImageSize = { width: 1200, height: 627 }
 export const ogImagePath = '/brand/og.png'
 
-export function createOgImageResponse(): ImageResponse {
+const INTER_BOLD_URL =
+  'https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIa25lLWMZ9hiJ2CA.woff2'
+const INTER_MEDIUM_URL =
+  'https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIq25lLWMZ9hiJ2M.woff2'
+
+let fontsPromise: Promise<
+  Array<{
+    name: string
+    data: ArrayBuffer
+    weight: 500 | 700
+    style: 'normal'
+  }>
+> | null = null
+
+function getOgFonts() {
+  if (!fontsPromise) {
+    fontsPromise = Promise.all([
+      fetch(INTER_BOLD_URL).then((response) => response.arrayBuffer()),
+      fetch(INTER_MEDIUM_URL).then((response) => response.arrayBuffer()),
+    ]).then(([bold, medium]) => [
+      { name: 'Inter', data: bold, weight: 700, style: 'normal' as const },
+      { name: 'Inter', data: medium, weight: 500, style: 'normal' as const },
+    ])
+  }
+
+  return fontsPromise
+}
+
+export async function createOgImageResponse(): Promise<ImageResponse> {
   const campusName = getConfiguredCampusName()
+  const fonts = await getOgFonts()
 
   return new ImageResponse(
     (
@@ -18,7 +47,7 @@ export function createOgImageResponse(): ImageResponse {
           flexDirection: 'column',
           background: '#FAF8F3',
           color: '#1B2A4A',
-          fontFamily: 'system-ui, sans-serif',
+          fontFamily: 'Inter',
         }}
       >
         <div style={{ height: 8, background: '#C9A227' }} />
@@ -122,6 +151,9 @@ export function createOgImageResponse(): ImageResponse {
         </div>
       </div>
     ),
-    { ...ogImageSize },
+    {
+      ...ogImageSize,
+      fonts,
+    },
   )
 }

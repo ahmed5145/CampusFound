@@ -1,4 +1,5 @@
-const defaultDescription = 'Found-item listings for your campus community'
+const defaultDescription =
+  'Browse and report found items on campus. Post photos with building and location details, search listings, and help reunite belongings with students and staff.'
 
 export function getSiteDescription(): string {
   return defaultDescription
