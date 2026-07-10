@@ -5,9 +5,12 @@ import Footer from "../components/ui/Footer";
 import Header from "../components/ui/Header";
 import AnalyticsInit from "../components/analytics/AnalyticsInit";
 import ErrorReporter from "../components/ErrorReporter";
+import { getMetadataBase, getSiteDescription } from "../lib/site";
 import "./globals.css";
 
 const campusName = process.env.NEXT_PUBLIC_CAMPUS_NAME?.trim() || "Campus Found";
+const siteDescription = getSiteDescription();
+const metadataBase = getMetadataBase();
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,8 +23,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase,
   title: campusName,
-  description: "Found-item listings for your campus community",
+  description: siteDescription,
+  openGraph: {
+    title: campusName,
+    description: siteDescription,
+    siteName: campusName,
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: campusName,
+    description: siteDescription,
+  },
   icons: {
     icon: [{ url: "/brand/logo-mark.svg", type: "image/svg+xml" }],
     apple: [{ url: "/brand/logo-mark.svg", type: "image/svg+xml" }],
